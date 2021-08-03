@@ -19,7 +19,7 @@ func ssm_client(config aws.Config) *ssm.Client {
 	return client
 }
 
-func Connect(config aws.Config, target string) {
+func Lookup(config aws.Config, target string) *ssm.Client {
 	client := ssm_client(config)
 	resp := lookup_instance_in_ssm(client, target)
 	if len(resp) == 0 {
@@ -30,7 +30,7 @@ func Connect(config aws.Config, target string) {
 		fmt.Println(fmt.Sprintf("%s is registered with SSM, but the agent is offline", target))
 		os.Exit(1)
 	}
-	start_session(client, target)
+	return client
 }
 
 func lookup_instance_in_ssm(client *ssm.Client, target string) []types.InstanceInformation {
@@ -62,14 +62,14 @@ type Target struct {
 	Target string
 }
 
-func start_session(client *ssm.Client, target string) {
+func Connect(client *ssm.Client, target string, profile string) {
 	input := &ssm.StartSessionInput{Target: &target}
 	resp, err := client.StartSession(context.TODO(), input)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	
+
 	j := &RespJSON{
 		SessionId:  *resp.SessionId,
 		StreamUrl:  *resp.StreamUrl,
@@ -80,7 +80,7 @@ func start_session(client *ssm.Client, target string) {
 	t := &Target{Target: target}
 	st, _ := json.Marshal(t)
 
-	cmd := exec.Command("session-manager-plugin", string(s), "us-east-1", "StartSession", "icecloud", string(st), "https://ssm.us-east-1.amazonaws.com")
+	cmd := exec.Command("session-manager-plugin", string(s), "us-east-1", "StartSession", profile, string(st), "https://ssm.us-east-1.amazonaws.com")
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
