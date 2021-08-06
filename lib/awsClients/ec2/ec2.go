@@ -90,7 +90,11 @@ func filter_matches(output *ec2.DescribeInstancesOutput, target string) string {
 		}
 	}
 
-	if len(matches) == 1 {
+	if len(matches) == 0 {
+		fmt.Println(fmt.Sprintf("no matching EC2 instances found for %s", target))
+		os.Exit(1)
+		return ""
+	} else if len(matches) == 1 {
 		fmt.Println(fmt.Sprintf("found %s currently running in EC2", matches[0].ID))
 		return matches[0].ID
 	} else {
