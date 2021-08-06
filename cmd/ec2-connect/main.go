@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"runtime"
 
 	"github.com/ruelala/ec2-connect/lib/awsClients"
@@ -21,16 +22,27 @@ func print_version() string {
 	return fmt.Sprintf("ec2-connect %s built with %s on commit %s at %s", version, go_version, commit, date)
 }
 
+func check_deps() {
+	path, err := exec.LookPath("session-manager-plugin")
+	if err != nil {
+		fmt.Println("cant find required AWS SSM session-manager-plugin executable in the $PATH, please install it https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html")
+		os.Exit(1)
+	} else {
+		fmt.Println(fmt.Sprintf("found %s", path))
+	}
+}
+
 func main() {
+	check_deps()
 	app := &cli.App{
 		Name:    "ec2-connect",
 		Version: print_version(),
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:    "profile",
-				Aliases: []string{"p"},
-				EnvVars: []string{"AWS_PROFILE"},
-				Usage:   "aws profile for account specification",
+				Name:     "profile",
+				Aliases:  []string{"p"},
+				EnvVars:  []string{"AWS_PROFILE"},
+				Usage:    "aws profile for account specification",
 				Required: true,
 			},
 			&cli.StringFlag{

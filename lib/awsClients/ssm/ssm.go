@@ -70,17 +70,17 @@ func Connect(client *ssm.Client, target string, profile string) {
 		os.Exit(1)
 	}
 
-	j := &RespJSON{
+	session := &RespJSON{
 		SessionId:  *resp.SessionId,
 		StreamUrl:  *resp.StreamUrl,
 		TokenValue: *resp.TokenValue,
 	}
-	s, _ := json.Marshal(j)
+	session_json, _ := json.Marshal(session)
 
-	t := &Target{Target: target}
-	st, _ := json.Marshal(t)
+	target_struct := &Target{Target: target}
+	target_json, _ := json.Marshal(target_struct)
 
-	cmd := exec.Command("session-manager-plugin", string(s), "us-east-1", "StartSession", profile, string(st), "https://ssm.us-east-1.amazonaws.com")
+	cmd := exec.Command("session-manager-plugin", string(session_json), "us-east-1", "StartSession", profile, string(target_json), "https://ssm.us-east-1.amazonaws.com")
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
