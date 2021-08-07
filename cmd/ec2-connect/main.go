@@ -33,7 +33,7 @@ func check_deps() {
 }
 
 func main() {
-	check_deps()
+	// check_deps()
 	app := &cli.App{
 		Name:    "ec2-connect",
 		Version: print_version(),
@@ -75,7 +75,9 @@ func run(c *cli.Context) error {
 		id = c.String("target")
 	}
 
-	ssm_client := ssm.Lookup(aws_config, id)
-	ssm.Connect(ssm_client, id, c.String("profile"))
+	// ssm_client := ssm.Lookup(aws_config, id)
+	// ssm.Connect(ssm_client, id, c.String("profile"))
+	ssm.Lookup(aws_config, id)
+	ssm.Connect(aws_config, id)
 	return nil
 }

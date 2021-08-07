@@ -2,14 +2,14 @@ package ssm
 
 import (
 	"context"
-	"encoding/json"
+	//"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
+	"github.com/mmmorris1975/ssm-session-client/ssmclient"
 )
 
 func ssm_client(config aws.Config) *ssm.Client {
@@ -54,39 +54,34 @@ func instance_online(resp []types.InstanceInformation) bool {
 	}
 }
 
-type RespJSON struct {
-	SessionId, StreamUrl, TokenValue string
-}
+// type RespJSON struct {
+// 	SessionId, StreamUrl, TokenValue string
+// }
 
-type Target struct {
-	Target string
-}
+// type Target struct {
+// 	Target string
+// }
 
-func Connect(client *ssm.Client, target string, profile string) {
-	input := &ssm.StartSessionInput{Target: &target}
-	resp, err := client.StartSession(context.TODO(), input)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+func Connect(config aws.Config, target string) {
+	// when https://github.com/aws/session-manager-plugin/issues/1 is resolved, switch to using
+	// code below and structs above
+	//
+	// input := &ssm.StartSessionInput{Target: &target}
+	// resp, err := client.StartSession(context.TODO(), input)
+	// if err != nil {
+	//    fmt.Println(err)
+	//    os.Exit(1)
+	// }
+	// session_info := &RespJSON{
+	//   SessionId:  *resp.SessionId,
+	//   StreamUrl:  *resp.StreamUrl,
+	//   TokenValue: *resp.TokenValue,
+	// }
+	// session_json, _ := json.Marshal(session_info)
+	// target_struct := &Target{Target: target}
+	// target_json, _ := json.Marshal(target_struct)
+	// args := []string{"session-manager-plugin", string(session_json), "us-east-1", "StartSession", profile, string(target_json), "https://ssm.us-east-1.amazonaws.com"}
+	// session.ValidateInputAndStartSession(args)
 
-	session := &RespJSON{
-		SessionId:  *resp.SessionId,
-		StreamUrl:  *resp.StreamUrl,
-		TokenValue: *resp.TokenValue,
-	}
-	session_json, _ := json.Marshal(session)
-
-	target_struct := &Target{Target: target}
-	target_json, _ := json.Marshal(target_struct)
-
-	cmd := exec.Command("session-manager-plugin", string(session_json), "us-east-1", "StartSession", profile, string(target_json), "https://ssm.us-east-1.amazonaws.com")
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
-	cmd.Stdin = os.Stdin
-
-	if err := cmd.Run(); err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
+	ssmclient.ShellSession(config, target)
 }

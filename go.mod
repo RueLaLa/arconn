@@ -9,5 +9,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.12.0
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.8.0
 	github.com/manifoldco/promptui v0.8.0
+	github.com/mmmorris1975/ssm-session-client v0.200.0
 	github.com/urfave/cli/v2 v2.3.0
 )
