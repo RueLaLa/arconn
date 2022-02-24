@@ -1,4 +1,4 @@
-module github.com/ruelala/ec2-connect
+module github.com/ruelala/arconn
 
 go 1.17
 

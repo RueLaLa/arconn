@@ -6,9 +6,9 @@ import (
 	"os/exec"
 	"runtime"
 
-	"github.com/ruelala/ec2-connect/lib/awsClients"
-	"github.com/ruelala/ec2-connect/lib/awsClients/ec2"
-	"github.com/ruelala/ec2-connect/lib/awsClients/ssm"
+	"github.com/ruelala/arconn/pkg/awsClients"
+	"github.com/ruelala/arconn/pkg/awsClients/ec2"
+	"github.com/ruelala/arconn/pkg/awsClients/ssm"
 	"github.com/urfave/cli/v2"
 )
 
@@ -19,7 +19,7 @@ var date string
 
 func print_version() string {
 	go_version := runtime.Version()
-	return fmt.Sprintf("ec2-connect %s built with %s on commit %s at %s", version, go_version, commit, date)
+	return fmt.Sprintf("arconn %s built with %s on commit %s at %s", version, go_version, commit, date)
 }
 
 func check_deps() {
@@ -35,7 +35,7 @@ func check_deps() {
 func main() {
 	// check_deps()
 	app := &cli.App{
-		Name:    "ec2-connect",
+		Name:    "arconn",
 		Version: print_version(),
 		Flags: []cli.Flag{
 			&cli.StringFlag{
