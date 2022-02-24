@@ -62,7 +62,7 @@ func lookup_with_filter(client *ec2.Client, target string, filter string) string
 		Filters: []types.Filter{
 			{
 				Name:   aws.String(filter),
-				Values: []string{target},
+				Values: []string{fmt.Sprintf("*%s*", target)},
 			},
 			{
 				Name:   aws.String("instance-state-name"),
@@ -76,17 +76,22 @@ func lookup_with_filter(client *ec2.Client, target string, filter string) string
 }
 
 type Instance struct {
-	ID, IP string
+	Name, ID, IP string
 }
 
 func filter_matches(output *ec2.DescribeInstancesOutput, target string) string {
 	var matches []Instance
 	for _, res := range output.Reservations {
 		for _, instance := range res.Instances {
-			matches = append(matches, Instance{
-				ID: *instance.InstanceId,
-				IP: *instance.PrivateIpAddress,
-			})
+			for _, tag := range instance.Tags {
+				if *tag.Key == "Name" {
+					matches = append(matches, Instance{
+						Name: *tag.Value,
+						ID:   *instance.InstanceId,
+						IP:   *instance.PrivateIpAddress,
+					})
+				}
+			}
 		}
 	}
 
@@ -105,14 +110,15 @@ func filter_matches(output *ec2.DescribeInstancesOutput, target string) string {
 
 func prompt_for_choice(instances []Instance) string {
 	templates := &promptui.SelectTemplates{
-		Active:   "\U00002713 {{ .ID | green }} ({{ .IP | blue }})",
-		Inactive: "  {{ .ID | green }} ({{ .IP | blue }})",
+		Active:   "\U00002713 {{ .Name | green }} {{ .ID | green }} ({{ .IP | blue }})",
+		Inactive: "  {{ .Name | green }} {{ .ID | green }} ({{ .IP | blue }})",
 		Selected: "\U00002713 {{ .ID | green }}",
 	}
 
 	prompt := promptui.Select{
 		Label:     "Select Instance to connect to",
 		Items:     instances,
+		Size:      10,
 		Templates: templates,
 	}
 
