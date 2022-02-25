@@ -22,16 +22,6 @@ func print_version() string {
 	return fmt.Sprintf("arconn %s built with %s on commit %s at %s", version, go_version, commit, date)
 }
 
-func check_deps() {
-	path, err := exec.LookPath("session-manager-plugin")
-	if err != nil {
-		fmt.Println("cant find required AWS SSM session-manager-plugin executable in the $PATH, please install it https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html")
-		os.Exit(1)
-	} else {
-		fmt.Println(fmt.Sprintf("found %s", path))
-	}
-}
-
 func main() {
 	// check_deps()
 	app := &cli.App{
@@ -45,14 +35,22 @@ func main() {
 				Usage:    "aws profile for account specification",
 				Required: true,
 			},
-			&cli.StringFlag{
-				Name:     "target",
-				Aliases:  []string{"t"},
-				Usage:    "target to start ssm session for",
-				Required: true,
+		},
+		Commands: []*cli.Command{
+			{
+				Name:   "ec2",
+				Usage:  "target ec2 instance for remote connection",
+				Action: run,
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     "target",
+						Aliases:  []string{"t"},
+						Usage:    "ec2 target to connect to remotely",
+						Required: true,
+					},
+				},
 			},
 		},
-		Action: run,
 	}
 
 	err := app.Run(os.Args)
@@ -63,21 +61,25 @@ func main() {
 }
 
 func run(c *cli.Context) error {
-	ttype := ec2.TargetType(c.String("target"))
-	fmt.Println(fmt.Sprintf("input target type: %s", ttype))
-
 	aws_config := awsClients.AwsConfig(c.String("profile"))
 
-	id := ""
-	if ttype != "ID" {
-		id = ec2.Lookup(aws_config, c.String("target"), ttype)
-	} else {
-		id = c.String("target")
+	var id string
+	switch c.Command.Name {
+	case "ec2":
+		{
+			ttype := ec2.TargetType(c.String("target"))
+			fmt.Println(fmt.Sprintf("input target type: %s", ttype))
+			if ttype != "ID" {
+				id = ec2.Lookup(aws_config, c.String("target"), ttype)
+			} else {
+				id = c.String("target")
+			}
+		}
+		ssm.Lookup(aws_config, id)
+		ssm.Connect(aws_config, id)
 	}
 
 	// ssm_client := ssm.Lookup(aws_config, id)
 	// ssm.Connect(ssm_client, id, c.String("profile"))
-	ssm.Lookup(aws_config, id)
-	ssm.Connect(aws_config, id)
 	return nil
 }
