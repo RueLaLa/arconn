@@ -70,7 +70,11 @@ func lookup_with_filter(client *ec2.Client, target string, filter string) string
 			},
 		},
 	}
-	resp, _ := client.DescribeInstances(context.TODO(), input)
+	resp, err := client.DescribeInstances(context.TODO(), input)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 	instance_id := filter_matches(resp, target)
 	return instance_id
 }
