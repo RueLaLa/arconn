@@ -2,4 +2,4 @@
 
 # Introduction
 
-A utility to connect to hosts and containers remotely using AWS SSM Agents
+arconn is a colourless, odourless CLI utility that is totally inert to other remote shell scripts. It enables the ability to connect to hosts and containers remotely leveraging running SSM Agents and the SSM Session Manager.
