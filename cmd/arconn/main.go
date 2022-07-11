@@ -5,10 +5,10 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/integrii/flaggy"
 	"github.com/ruelala/arconn/pkg/awsClients"
 	"github.com/ruelala/arconn/pkg/awsClients/ec2"
 	"github.com/ruelala/arconn/pkg/awsClients/ssm"
-	"github.com/urfave/cli/v2"
 )
 
 // these get passed in as ldflags by goreleaser
@@ -22,63 +22,26 @@ func print_version() string {
 }
 
 func main() {
-	// check_deps()
-	app := &cli.App{
-		Name:    "arconn",
-		Version: print_version(),
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:     "profile",
-				Aliases:  []string{"p"},
-				EnvVars:  []string{"AWS_PROFILE"},
-				Usage:    "aws profile for account specification",
-				Required: true,
-			},
-		},
-		Commands: []*cli.Command{
-			{
-				Name:   "ec2",
-				Usage:  "target ec2 instance for remote connection",
-				Action: run,
-				Flags: []cli.Flag{
-					&cli.StringFlag{
-						Name:     "target",
-						Aliases:  []string{"t"},
-						Usage:    "ec2 target to connect to remotely",
-						Required: true,
-					},
-				},
-			},
-		},
-	}
+	var profile = os.Getenv("AWS_PROFILE")
+	var target string
+	flaggy.String(&profile, "p", "profile", "aws profile to use")
+	flaggy.String(&target, "t", "target", "resource to target for session connection")
+	flaggy.SetVersion(print_version())
+	flaggy.Parse()
 
-	err := app.Run(os.Args)
-	if err != nil {
-		fmt.Printf("\n %s", err)
-		os.Exit(1)
-	}
-}
-
-func run(c *cli.Context) error {
-	aws_config := awsClients.AwsConfig(c.String("profile"))
+	aws_config := awsClients.AwsConfig(profile)
+	ttype := ec2.TargetType(target)
+	fmt.Println(fmt.Sprintf("input target type: %s", ttype))
 
 	var id string
-	switch c.Command.Name {
-	case "ec2":
-		{
-			ttype := ec2.TargetType(c.String("target"))
-			fmt.Println(fmt.Sprintf("input target type: %s", ttype))
-			if ttype != "ID" {
-				id = ec2.Lookup(aws_config, c.String("target"), ttype)
-			} else {
-				id = c.String("target")
-			}
-		}
-		ssm.Lookup(aws_config, id)
-		ssm.Connect(aws_config, id)
+	if ttype != "ID" {
+		id = ec2.Lookup(aws_config, target, ttype)
+	} else {
+		id = target
 	}
+	ssm.Lookup(aws_config, id)
+	ssm.Connect(aws_config, id)
 
 	// ssm_client := ssm.Lookup(aws_config, id)
 	// ssm.Connect(ssm_client, id, c.String("profile"))
-	return nil
 }
