@@ -40,7 +40,7 @@ func main() {
 		id = target
 	}
 	ssm.Lookup(aws_config, id)
-	ssm.Connect(aws_config, id)
+	ssm.Connect(aws_config, profile, id)
 
 	// ssm_client := ssm.Lookup(aws_config, id)
 	// ssm.Connect(ssm_client, id, c.String("profile"))
