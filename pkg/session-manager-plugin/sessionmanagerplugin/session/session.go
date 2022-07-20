@@ -24,6 +24,7 @@ import (
 
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/config"
 
+	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/datachannel"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/log"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/message"
@@ -31,7 +32,6 @@ import (
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/sdkutil"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/sessionmanagerplugin/session/sessionutil"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/version"
-	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/twinj/uuid"
 )
 

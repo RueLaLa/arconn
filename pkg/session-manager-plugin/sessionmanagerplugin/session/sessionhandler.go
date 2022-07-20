@@ -19,13 +19,13 @@ import (
 	"math/rand"
 	"os"
 
+	sdkSession "github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/config"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/log"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/message"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/retry"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/sdkutil"
-	sdkSession "github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ssm"
 )
 
 // OpenDataChannel initializes datachannel

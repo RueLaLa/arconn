@@ -24,6 +24,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go/service/kms/kmsiface"
+	"github.com/gorilla/websocket"
 	communicatorMocks "github.com/ruelala/arconn/pkg/session-manager-plugin/communicator/mocks"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/config"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/encryption"
@@ -31,8 +33,6 @@ import (
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/log"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/message"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/version"
-	"github.com/aws/aws-sdk-go/service/kms/kmsiface"
-	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/twinj/uuid"
