@@ -3,57 +3,32 @@ package ec2
 import (
 	"context"
 	"fmt"
-	"net"
 	"os"
-	"regexp"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/manifoldco/promptui"
+	"github.com/ruelala/arconn/pkg/awsClients"
+	"github.com/ruelala/arconn/pkg/awsClients/ssm"
+	"github.com/ruelala/arconn/pkg/utils"
 )
 
-func ec2_client(config aws.Config) *ec2.Client {
-	client := ec2.NewFromConfig(config, func(o *ec2.Options) {
-		o.Region = "us-east-1"
-	})
-	return client
-}
-
-func TargetType(target string) string {
-	// classic ec2 id length
-	smatch, _ := regexp.MatchString("i-[0-9a-f]{8}", target)
-	if smatch {
-		return "ID"
-	}
-
-	// new ec2 id length
-	lmatch, _ := regexp.MatchString("i-[0-9a-f]{17}", target)
-	if lmatch {
-		return "ID"
-	}
-
-	// IP address
-	ip := net.ParseIP(target)
-	if ip != nil {
-		return "IP"
-	}
-
-	return "name"
-}
-
-func Lookup(config aws.Config, target string, ttype string) string {
-	client := ec2_client(config)
+func Lookup(profile, target, ttype string) string {
+	client := awsClients.EC2Client(profile)
 
 	fmt.Println("searching ec2 for matching instances")
-	id := ""
+
+	filter := ""
 	switch ttype {
 	case "IP":
-		id = lookup_with_filter(client, target, "network-interface.addresses.private-ip-address")
-	case "name":
-		id = lookup_with_filter(client, target, "tag:Name")
+		filter = "network-interface.addresses.private-ip-address"
+	case "NAME":
+		filter = "tag:Name"
 	}
 
+	id := lookup_with_filter(client, target, filter)
+	ssm.Lookup(profile, id)
 	return id
 }
 
@@ -71,10 +46,7 @@ func lookup_with_filter(client *ec2.Client, target string, filter string) string
 		},
 	}
 	resp, err := client.DescribeInstances(context.TODO(), input)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	utils.Panic(err)
 	instance_id := filter_matches(resp, target)
 	return instance_id
 }
@@ -127,11 +99,7 @@ func prompt_for_choice(instances []Instance) string {
 	}
 
 	i, _, err := prompt.Run()
-
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	utils.Panic(err)
 
 	return instances[i].ID
 }

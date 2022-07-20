@@ -19,10 +19,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/config"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/log"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/websocketutil"
-	"github.com/gorilla/websocket"
 )
 
 // IWebSocketChannel is the interface for DataChannel.

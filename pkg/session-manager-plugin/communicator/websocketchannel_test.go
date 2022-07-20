@@ -23,8 +23,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/ruelala/arconn/pkg/session-manager-plugin/log"
 	"github.com/gorilla/websocket"
+	"github.com/ruelala/arconn/pkg/session-manager-plugin/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

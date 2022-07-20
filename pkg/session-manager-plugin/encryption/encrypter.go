@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/ruelala/arconn/pkg/session-manager-plugin/log"
 	"github.com/aws/aws-sdk-go/service/kms/kmsiface"
+	"github.com/ruelala/arconn/pkg/session-manager-plugin/log"
 )
 
 const (
