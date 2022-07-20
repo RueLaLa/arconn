@@ -5,6 +5,7 @@ import (
 	"runtime"
 
 	"github.com/ruelala/arconn/pkg/awsClients/ec2"
+	"github.com/ruelala/arconn/pkg/awsClients/ecs"
 	"github.com/ruelala/arconn/pkg/awsClients/ssm"
 	"github.com/ruelala/arconn/pkg/utils"
 )
@@ -24,10 +25,13 @@ func main() {
 	ttype := utils.TargetType(target)
 	fmt.Println(fmt.Sprintf("input target type: %s", ttype))
 
+	session := ""
 	if ttype != "EC2_ID" {
-		target = ec2.Lookup(profile, target, ttype)
+		target, session = ecs.Lookup(profile, target)
+		if session == "" {
+			target = ec2.Lookup(profile, target, ttype)
+		}
 	}
 
-	ssm_client := ssm.Lookup(profile, target)
-	ssm.Connect(ssm_client, profile, target)
+	ssm.Connect(profile, session, target)
 }

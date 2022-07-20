@@ -19,14 +19,7 @@ import (
 func Lookup(profile, target string) *ssm.Client {
 	client := awsClients.SSMClient(profile)
 	resp := lookup_instance_in_ssm(client, target)
-	if len(resp) == 0 {
-		fmt.Println(fmt.Sprintf("%s is not currently registered with SSM, make sure agent is configured and online", target))
-		os.Exit(1)
-	}
-	if instance_online(resp) == false {
-		fmt.Println(fmt.Sprintf("%s is registered with SSM, but the agent is offline", target))
-		os.Exit(1)
-	}
+	instance_online(resp, target)
 	return client
 }
 
@@ -39,41 +32,40 @@ func lookup_instance_in_ssm(client *ssm.Client, target string) []types.InstanceI
 			},
 		},
 	}
-	resp, _ := client.DescribeInstanceInformation(context.TODO(), input)
+	resp, err := client.DescribeInstanceInformation(context.TODO(), input)
+	utils.Panic(err)
+
+	if len(resp.InstanceInformationList) == 0 {
+		fmt.Println(fmt.Sprintf("%s is not currently registered with SSM, make sure agent is configured and online", target))
+		os.Exit(1)
+	}
 	return resp.InstanceInformationList
 }
 
-func instance_online(resp []types.InstanceInformation) bool {
+func instance_online(resp []types.InstanceInformation, target string) bool {
 	if resp[0].PingStatus == types.PingStatusOnline {
 		return true
 	} else {
+		fmt.Println(fmt.Sprintf("%s is registered with SSM, but the agent is offline", target))
+		os.Exit(1)
 		return false
 	}
 }
 
-type SessionInfo struct {
-	SessionId, StreamUrl, TokenValue string
-}
+func Connect(profile, session_json, target string) {
+	client := awsClients.SSMClient(profile)
 
-type SessionTarget struct {
-	Target string
-}
-
-func Connect(client *ssm.Client, profile string, target string) {
 	input := &ssm.StartSessionInput{Target: &target}
-	resp, err := client.StartSession(context.TODO(), input)
-	utils.Panic(err)
+	target_json, _ := json.Marshal(input)
 
-	session_info := &SessionInfo{
-		SessionId:  *resp.SessionId,
-		StreamUrl:  *resp.StreamUrl,
-		TokenValue: *resp.TokenValue,
+	if session_json == "" {
+		resp, err := client.StartSession(context.TODO(), input)
+		utils.Panic(err)
+		session_raw, _ := json.Marshal(resp)
+		session_json = string(session_raw)
 	}
-	session_json, _ := json.Marshal(session_info)
-
-	target_struct := &SessionTarget{Target: target}
-	target_json, _ := json.Marshal(target_struct)
 
 	args := []string{"session-manager-plugin", string(session_json), "us-east-1", "StartSession", profile, string(target_json), "https://ssm.us-east-1.amazonaws.com"}
+	fmt.Println(args)
 	session.ValidateInputAndStartSession(args, os.Stdout)
 }

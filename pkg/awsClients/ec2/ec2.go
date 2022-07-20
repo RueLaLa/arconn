@@ -10,20 +10,25 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/manifoldco/promptui"
 	"github.com/ruelala/arconn/pkg/awsClients"
+	"github.com/ruelala/arconn/pkg/awsClients/ssm"
+	"github.com/ruelala/arconn/pkg/utils"
 )
 
 func Lookup(profile, target, ttype string) string {
 	client := awsClients.EC2Client(profile)
 
 	fmt.Println("searching ec2 for matching instances")
-	id := ""
+
+	filter := ""
 	switch ttype {
 	case "IP":
-		id = lookup_with_filter(client, target, "network-interface.addresses.private-ip-address")
-	case "UNKNOWN":
-		id = lookup_with_filter(client, target, "tag:Name")
+		filter = "network-interface.addresses.private-ip-address"
+	case "NAME":
+		filter = "tag:Name"
 	}
 
+	id := lookup_with_filter(client, target, filter)
+	ssm.Lookup(profile, id)
 	return id
 }
 
@@ -41,10 +46,7 @@ func lookup_with_filter(client *ec2.Client, target string, filter string) string
 		},
 	}
 	resp, err := client.DescribeInstances(context.TODO(), input)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	utils.Panic(err)
 	instance_id := filter_matches(resp, target)
 	return instance_id
 }
@@ -97,11 +99,7 @@ func prompt_for_choice(instances []Instance) string {
 	}
 
 	i, _, err := prompt.Run()
-
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	utils.Panic(err)
 
 	return instances[i].ID
 }

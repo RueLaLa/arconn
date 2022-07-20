@@ -37,7 +37,7 @@ func TargetType(target string) string {
 	case net.ParseIP(target) != nil:
 		return "IP"
 	default:
-		return "UNKNOWN"
+		return "NAME"
 	}
 }
 
