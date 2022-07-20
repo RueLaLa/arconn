@@ -9,20 +9,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
+	"github.com/ruelala/arconn/pkg/awsClients"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/sessionmanagerplugin/session"
 	_ "github.com/ruelala/arconn/pkg/session-manager-plugin/sessionmanagerplugin/session/portsession"
 	_ "github.com/ruelala/arconn/pkg/session-manager-plugin/sessionmanagerplugin/session/shellsession"
+	"github.com/ruelala/arconn/pkg/utils"
 )
 
-func ssm_client(config aws.Config) *ssm.Client {
-	client := ssm.NewFromConfig(config, func(o *ssm.Options) {
-		o.Region = "us-east-1"
-	})
-	return client
-}
-
-func Lookup(config aws.Config, target string) *ssm.Client {
-	client := ssm_client(config)
+func Lookup(profile, target string) *ssm.Client {
+	client := awsClients.SSMClient(profile)
 	resp := lookup_instance_in_ssm(client, target)
 	if len(resp) == 0 {
 		fmt.Println(fmt.Sprintf("%s is not currently registered with SSM, make sure agent is configured and online", target))
@@ -56,30 +51,29 @@ func instance_online(resp []types.InstanceInformation) bool {
 	}
 }
 
-type RespJSON struct {
+type SessionInfo struct {
 	SessionId, StreamUrl, TokenValue string
 }
 
-type Target struct {
+type SessionTarget struct {
 	Target string
 }
 
-func Connect(config aws.Config, profile string, target string) {
-	client := ssm_client(config)
+func Connect(client *ssm.Client, profile string, target string) {
 	input := &ssm.StartSessionInput{Target: &target}
 	resp, err := client.StartSession(context.TODO(), input)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	session_info := &RespJSON{
+	utils.Panic(err)
+
+	session_info := &SessionInfo{
 		SessionId:  *resp.SessionId,
 		StreamUrl:  *resp.StreamUrl,
 		TokenValue: *resp.TokenValue,
 	}
 	session_json, _ := json.Marshal(session_info)
-	target_struct := &Target{Target: target}
+
+	target_struct := &SessionTarget{Target: target}
 	target_json, _ := json.Marshal(target_struct)
+
 	args := []string{"session-manager-plugin", string(session_json), "us-east-1", "StartSession", profile, string(target_json), "https://ssm.us-east-1.amazonaws.com"}
 	session.ValidateInputAndStartSession(args, os.Stdout)
 }

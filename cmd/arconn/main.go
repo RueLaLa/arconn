@@ -2,13 +2,11 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"runtime"
 
-	"github.com/integrii/flaggy"
-	"github.com/ruelala/arconn/pkg/awsClients"
 	"github.com/ruelala/arconn/pkg/awsClients/ec2"
 	"github.com/ruelala/arconn/pkg/awsClients/ssm"
+	"github.com/ruelala/arconn/pkg/utils"
 )
 
 // these get passed in as ldflags by goreleaser
@@ -22,26 +20,14 @@ func print_version() string {
 }
 
 func main() {
-	var profile = os.Getenv("AWS_PROFILE")
-	var target string
-	flaggy.String(&profile, "p", "profile", "aws profile to use")
-	flaggy.String(&target, "t", "target", "resource to target for session connection")
-	flaggy.SetVersion(print_version())
-	flaggy.Parse()
-
-	aws_config := awsClients.AwsConfig(profile)
-	ttype := ec2.TargetType(target)
+	profile, target := utils.ParseFlags(print_version())
+	ttype := utils.TargetType(target)
 	fmt.Println(fmt.Sprintf("input target type: %s", ttype))
 
-	var id string
-	if ttype != "ID" {
-		id = ec2.Lookup(aws_config, target, ttype)
-	} else {
-		id = target
+	if ttype != "EC2_ID" {
+		target = ec2.Lookup(profile, target, ttype)
 	}
-	ssm.Lookup(aws_config, id)
-	ssm.Connect(aws_config, profile, id)
 
-	// ssm_client := ssm.Lookup(aws_config, id)
-	// ssm.Connect(ssm_client, id, c.String("profile"))
+	ssm_client := ssm.Lookup(profile, target)
+	ssm.Connect(ssm_client, profile, target)
 }

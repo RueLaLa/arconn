@@ -3,10 +3,10 @@ module github.com/ruelala/arconn
 go 1.18
 
 require (
-	github.com/aws/aws-sdk-go v1.44.56
+	github.com/aws/aws-sdk-go v1.44.58
 	github.com/aws/aws-sdk-go-v2 v1.16.7
 	github.com/aws/aws-sdk-go-v2/config v1.15.14
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.49.0
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.49.1
 	github.com/aws/aws-sdk-go-v2/service/ecs v1.18.11
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.27.4
 	github.com/cihub/seelog v0.0.0-20170130134532-f561c5e57575

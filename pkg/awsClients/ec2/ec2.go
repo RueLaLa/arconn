@@ -3,54 +3,24 @@ package ec2
 import (
 	"context"
 	"fmt"
-	"net"
 	"os"
-	"regexp"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/manifoldco/promptui"
+	"github.com/ruelala/arconn/pkg/awsClients"
 )
 
-func ec2_client(config aws.Config) *ec2.Client {
-	client := ec2.NewFromConfig(config, func(o *ec2.Options) {
-		o.Region = "us-east-1"
-	})
-	return client
-}
-
-func TargetType(target string) string {
-	// classic ec2 id length
-	smatch, _ := regexp.MatchString("i-[0-9a-f]{8}", target)
-	if smatch {
-		return "ID"
-	}
-
-	// new ec2 id length
-	lmatch, _ := regexp.MatchString("i-[0-9a-f]{17}", target)
-	if lmatch {
-		return "ID"
-	}
-
-	// IP address
-	ip := net.ParseIP(target)
-	if ip != nil {
-		return "IP"
-	}
-
-	return "name"
-}
-
-func Lookup(config aws.Config, target string, ttype string) string {
-	client := ec2_client(config)
+func Lookup(profile, target, ttype string) string {
+	client := awsClients.EC2Client(profile)
 
 	fmt.Println("searching ec2 for matching instances")
 	id := ""
 	switch ttype {
 	case "IP":
 		id = lookup_with_filter(client, target, "network-interface.addresses.private-ip-address")
-	case "name":
+	case "UNKNOWN":
 		id = lookup_with_filter(client, target, "tag:Name")
 	}
 

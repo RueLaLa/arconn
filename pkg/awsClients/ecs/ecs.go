@@ -12,14 +12,6 @@ import (
 )
 
 func GetTarget() {
-	cfg, _ := config.LoadDefaultConfig(
-		context.TODO(),
-		config.WithSharedConfigProfile("icecloud"),
-		config.WithRegion("us-east-1"),
-	)
-	client := ecs.NewFromConfig(cfg, func(o *ecs.Options) {
-		o.Region = "us-east-1"
-	})
 	input := &ecs.ExecuteCommandInput{
 		Command:     aws.String("/bin/bash"),
 		Interactive: true,
