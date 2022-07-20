@@ -21,8 +21,8 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/ruelala/arconn/pkg/session-manager-plugin/log"
 	"github.com/gorilla/websocket"
+	"github.com/ruelala/arconn/pkg/session-manager-plugin/log"
 	"github.com/stretchr/testify/assert"
 )
 

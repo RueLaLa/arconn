@@ -11,6 +11,7 @@
 // either express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
 
+//go:build windows
 // +build windows
 
 // Package shellsession starts shell session.
@@ -20,9 +21,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/eiannone/keyboard"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/log"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/message"
-	"github.com/eiannone/keyboard"
 )
 
 // Byte array for key inputs

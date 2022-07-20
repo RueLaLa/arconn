@@ -27,6 +27,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/kms/kmsiface"
+	"github.com/gorilla/websocket"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/communicator"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/config"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/encryption"
@@ -34,9 +37,6 @@ import (
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/message"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/service"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/version"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/kms/kmsiface"
-	"github.com/gorilla/websocket"
 	"github.com/twinj/uuid"
 )
 

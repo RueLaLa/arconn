@@ -17,8 +17,8 @@ package websocketutil
 import (
 	"errors"
 
-	"github.com/ruelala/arconn/pkg/session-manager-plugin/log"
 	"github.com/gorilla/websocket"
+	"github.com/ruelala/arconn/pkg/session-manager-plugin/log"
 )
 
 // IWebsocketUtil is the interface for the websocketutil.
