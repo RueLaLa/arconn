@@ -3,7 +3,6 @@ package ec2
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
@@ -15,9 +14,8 @@ import (
 )
 
 func Lookup(profile, target, ttype string) string {
+	fmt.Println("searching EC2 for matching instances")
 	client := awsClients.EC2Client(profile)
-
-	fmt.Println("searching ec2 for matching instances")
 
 	filter := ""
 	switch ttype {
@@ -73,7 +71,6 @@ func filter_matches(output *ec2.DescribeInstancesOutput, target string) string {
 
 	if len(matches) == 0 {
 		fmt.Println(fmt.Sprintf("no matching EC2 instances found for %s", target))
-		os.Exit(1)
 		return ""
 	} else if len(matches) == 1 {
 		fmt.Println(fmt.Sprintf("found %s currently running in EC2", matches[0].ID))
