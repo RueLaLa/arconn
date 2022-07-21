@@ -66,6 +66,5 @@ func Connect(profile, session_json, target string) {
 	}
 
 	args := []string{"session-manager-plugin", string(session_json), "us-east-1", "StartSession", profile, string(target_json), "https://ssm.us-east-1.amazonaws.com"}
-	fmt.Println(args)
 	session.ValidateInputAndStartSession(args, os.Stdout)
 }
