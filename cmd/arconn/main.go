@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"runtime"
 
 	"github.com/ruelala/arconn/pkg/awsClients/ec2"
@@ -25,13 +26,19 @@ func main() {
 	ttype := utils.TargetType(target)
 	fmt.Println(fmt.Sprintf("input target type: %s", ttype))
 
+	resolved_target := ""
 	session := ""
 	if ttype != "EC2_ID" {
-		target, session = ecs.Lookup(profile, target)
+		resolved_target, session = ecs.Lookup(profile, target)
 		if session == "" {
-			target = ec2.Lookup(profile, target, ttype)
+			resolved_target = ec2.Lookup(profile, target, ttype)
 		}
 	}
 
-	ssm.Connect(profile, session, target)
+	if resolved_target == "" {
+		os.Exit(1)
+	}
+
+	fmt.Println(fmt.Sprintf("connecting to %s", resolved_target))
+	ssm.Connect(profile, session, resolved_target)
 }
