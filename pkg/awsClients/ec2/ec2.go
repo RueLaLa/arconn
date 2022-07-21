@@ -26,6 +26,9 @@ func Lookup(profile, target, ttype string) string {
 	}
 
 	id := lookup_with_filter(client, target, filter)
+	if id == "" {
+		return ""
+	}
 	ssm.Lookup(profile, id)
 	return id
 }
