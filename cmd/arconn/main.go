@@ -33,6 +33,8 @@ func main() {
 		if session == "" {
 			resolved_target = ec2.Lookup(profile, target, ttype)
 		}
+	} else {
+		resolved_target = target
 	}
 
 	if resolved_target == "" {
