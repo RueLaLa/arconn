@@ -29,7 +29,7 @@ func Lookup(profile, target, ttype string) string {
 	if id == "" {
 		return ""
 	}
-	ssm.Lookup(profile, id)
+	ssm.Lookup(profile, id, true)
 	return id
 }
 

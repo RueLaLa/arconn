@@ -132,6 +132,9 @@ func describe_tasks(client *ecs.Client, cluster string, tasks []string, target s
 		resp, err := client.DescribeTasks(context.TODO(), input)
 		utils.Panic(err)
 		for _, task := range resp.Tasks {
+			if len(task.Containers) == 0 {
+				continue
+			}
 			if (*task.Containers[0].Name == target) && (task.EnableExecuteCommand == true) {
 				carn, _ := arn.Parse(cluster)
 				tarn, _ := arn.Parse(*task.TaskArn)
