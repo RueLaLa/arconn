@@ -28,13 +28,16 @@ func main() {
 
 	resolved_target := ""
 	session := ""
-	if ttype != "EC2_ID" {
+	if (ttype == "EC2_ID") || (ttype == "SSM_MI_ID") {
+		resolved_target = target
+	} else {
 		resolved_target, session = ecs.Lookup(profile, target)
 		if session == "" {
 			resolved_target = ec2.Lookup(profile, target, ttype)
 		}
-	} else {
-		resolved_target = target
+		if session == "" {
+			resolved_target = ssm.Lookup(profile, target, false)
+		}
 	}
 
 	if resolved_target == "" {

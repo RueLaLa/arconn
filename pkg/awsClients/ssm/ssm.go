@@ -16,21 +16,24 @@ import (
 	"github.com/ruelala/arconn/pkg/utils"
 )
 
-func Lookup(profile, target string) *ssm.Client {
+func Lookup(profile, target string, use_filter bool) string {
 	client := awsClients.SSMClient(profile)
-	resp := lookup_instance_in_ssm(client, target)
+	resp := lookup_instance_in_ssm(client, target, use_filter)
 	instance_online(resp, target)
-	return client
+	return *resp[0].InstanceId
 }
 
-func lookup_instance_in_ssm(client *ssm.Client, target string) []types.InstanceInformation {
-	input := &ssm.DescribeInstanceInformationInput{
-		Filters: []types.InstanceInformationStringFilter{
-			{
-				Key:    aws.String("InstanceIds"),
-				Values: []string{target},
+func lookup_instance_in_ssm(client *ssm.Client, target string, use_filter bool) []types.InstanceInformation {
+	input := &ssm.DescribeInstanceInformationInput{}
+	if use_filter {
+		input = &ssm.DescribeInstanceInformationInput{
+			Filters: []types.InstanceInformationStringFilter{
+				{
+					Key:    aws.String("InstanceIds"),
+					Values: []string{target},
+				},
 			},
-		},
+		}
 	}
 	resp, err := client.DescribeInstanceInformation(context.TODO(), input)
 	utils.Panic(err)

@@ -20,7 +20,7 @@ import (
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/ssmclicommands"
 )
 
-//Created a ssmcli binary, used for testing purpose only.
+// Created a ssmcli binary, used for testing purpose only.
 func main() {
 	ssmclicommands.ValidateInput(os.Args, os.Stdout)
 }
