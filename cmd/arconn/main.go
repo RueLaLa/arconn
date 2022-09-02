@@ -35,7 +35,7 @@ func main() {
 		if session == "" {
 			resolved_target = ec2.Lookup(profile, target, ttype)
 		}
-		if session == "" {
+		if resolved_target == "" {
 			resolved_target = ssm.Lookup(profile, target, false)
 		}
 	}
