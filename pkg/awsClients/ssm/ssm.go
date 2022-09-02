@@ -21,7 +21,7 @@ func Lookup(profile, target string, use_filter bool) string {
 	client := awsClients.SSMClient(profile)
 	resp := lookup_instance_in_ssm(client, target, use_filter)
 	instance := ""
-	if use_filter {
+	if use_filter == true {
 		instance = *resp[0].InstanceId
 	} else {
 		instance = filter_matches(resp, target)
