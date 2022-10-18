@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"runtime"
 
 	"github.com/ruelala/arconn/pkg/awsClients/ec2"
@@ -22,28 +21,27 @@ func print_version() string {
 }
 
 func main() {
-	profile, target := utils.ParseFlags(print_version())
-	ttype := utils.TargetType(target)
-	fmt.Println(fmt.Sprintf("input target type: %s", ttype))
+	args := utils.ParseFlags(print_version())
+	target := utils.Target{}
 
-	resolved_target := ""
-	session := ""
-	if (ttype == "EC2_ID") || (ttype == "SSM_MI_ID") {
-		resolved_target = target
+	target.Type = utils.TargetType(args.Target)
+	fmt.Println(fmt.Sprintf("computed target type: %s", target.Type))
+
+	if (target.Type == "EC2_ID") || (target.Type == "SSM_MI_ID") {
+		target.ResolvedName = args.Target
+	} else if target.Type == "IP" {
+		target = ec2.Lookup(args, target)
 	} else {
-		resolved_target, session = ecs.Lookup(profile, target)
-		if session == "" {
-			resolved_target = ec2.Lookup(profile, target, ttype)
-		}
-		if resolved_target == "" {
-			resolved_target = ssm.Lookup(profile, target, false)
+		target = ecs.Lookup(args, target)
+
+		if target.SessionInfo == "" {
+			target = ec2.Lookup(args, target)
 		}
 	}
 
-	if resolved_target == "" {
-		os.Exit(1)
+	if target.SessionInfo == "" {
+		target = ssm.Lookup(args, target)
 	}
-
-	fmt.Println(fmt.Sprintf("connecting to %s", resolved_target))
-	ssm.Connect(profile, session, resolved_target)
+	fmt.Println(fmt.Sprintf("connecting to %s", target.ResolvedName))
+	ssm.Connect(args, target)
 }
