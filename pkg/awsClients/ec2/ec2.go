@@ -9,28 +9,28 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/manifoldco/promptui"
 	"github.com/ruelala/arconn/pkg/awsClients"
-	"github.com/ruelala/arconn/pkg/awsClients/ssm"
 	"github.com/ruelala/arconn/pkg/utils"
 )
 
-func Lookup(profile, target, ttype string) string {
+func Lookup(args utils.Args, target utils.Target) utils.Target {
 	fmt.Println("searching EC2 for matching instances")
-	client := awsClients.EC2Client(profile)
+	client := awsClients.EC2Client(args.Profile)
 
 	filter := ""
-	switch ttype {
+	switch target.Type {
 	case "IP":
 		filter = "network-interface.addresses.private-ip-address"
 	case "NAME":
 		filter = "tag:Name"
 	}
 
-	id := lookup_with_filter(client, target, filter)
-	if id == "" {
-		return ""
+	id := lookup_with_filter(client, args.Target, filter)
+	if id != "" {
+		target.ResolvedName = id
+		target.Resolved = true
 	}
-	ssm.Lookup(profile, id, true)
-	return id
+
+	return target
 }
 
 func lookup_with_filter(client *ec2.Client, target string, filter string) string {
