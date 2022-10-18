@@ -136,7 +136,9 @@ func describe_tasks(client *ecs.Client, cluster string, tasks []string, target s
 			if len(task.Containers) == 0 {
 				continue
 			}
-			if (*task.Containers[0].Name == target) && (task.EnableExecuteCommand == true) {
+			task_arn_split := strings.Split(*task.TaskArn, "/")
+			task_id := task_arn_split[len(task_arn_split)-1]
+			if ((*task.Containers[0].Name == target) || (task_id == target)) && (task.EnableExecuteCommand == true) {
 				carn, _ := arn.Parse(cluster)
 				tarn, _ := arn.Parse(*task.TaskArn)
 				task_info = append(task_info,
