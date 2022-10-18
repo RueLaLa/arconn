@@ -14,16 +14,16 @@ import (
 	"github.com/ruelala/arconn/pkg/utils"
 )
 
-func Lookup(profile, target string) (string, string) {
+func Lookup(args utils.Args, target utils.Target) utils.Target {
 	fmt.Println("searching ECS for matching tasks")
-	client := awsClients.ECSClient(profile)
+	client := awsClients.ECSClient(args.Profile)
 	clusters := list_clusters(client)
-	tasks := find_matching_tasks(client, clusters, target)
+	tasks := find_matching_tasks(client, clusters, args.Target)
 
 	chosen_task := Task{}
 	if len(tasks) == 0 {
 		fmt.Println("no tasks matching target running in ECS with execute command capabilities")
-		return "", ""
+		return target
 	} else if len(tasks) == 1 {
 		chosen_task = tasks[0]
 	} else {
@@ -38,9 +38,10 @@ func Lookup(profile, target string) (string, string) {
 	}
 	out, err := client.ExecuteCommand(context.TODO(), input)
 	utils.Panic(err)
-	session, _ := json.Marshal(out.Session)
-	target = construct_target(chosen_task)
-	return target, string(session)
+	session_info, _ := json.Marshal(out.Session)
+	target.SessionInfo = string(session_info)
+	target.ResolvedName = construct_target(chosen_task)
+	return target
 }
 
 func construct_target(task Task) string {

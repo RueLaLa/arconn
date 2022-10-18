@@ -17,17 +17,22 @@ import (
 	"github.com/ruelala/arconn/pkg/utils"
 )
 
-func Lookup(profile, target string, use_filter bool) string {
-	client := awsClients.SSMClient(profile)
-	resp := lookup_instance_in_ssm(client, target, use_filter)
-	instance := ""
-	if use_filter == true {
-		instance = *resp[0].InstanceId
+func Lookup(args utils.Args, target utils.Target) utils.Target {
+	client := awsClients.SSMClient(args.Profile)
+	ssm_target := ""
+	if target.Resolved {
+		ssm_target = target.ResolvedName
 	} else {
-		instance = filter_matches(resp, target)
+		ssm_target = args.Target
 	}
-	instance_online(resp, target)
-	return instance
+	resp := lookup_instance_in_ssm(client, ssm_target)
+	if len(resp) > 1 {
+		target.ResolvedName = filter_matches(resp, args.Target)
+	} else {
+		target.ResolvedName = *resp[0].InstanceId
+	}
+	instance_online(resp, target.ResolvedName)
+	return target
 }
 
 type Instance struct {
@@ -77,9 +82,9 @@ func prompt_for_choice(instances []Instance) string {
 	return instances[i].ID
 }
 
-func lookup_instance_in_ssm(client *ssm.Client, target string, use_filter bool) []types.InstanceInformation {
+func lookup_instance_in_ssm(client *ssm.Client, target string) []types.InstanceInformation {
 	input := &ssm.DescribeInstanceInformationInput{}
-	if use_filter {
+	if utils.TargetType(target) == "EC2_ID" {
 		input = &ssm.DescribeInstanceInformationInput{
 			Filters: []types.InstanceInformationStringFilter{
 				{
@@ -109,19 +114,19 @@ func instance_online(resp []types.InstanceInformation, target string) bool {
 	}
 }
 
-func Connect(profile, session_json, target string) {
-	client := awsClients.SSMClient(profile)
+func Connect(args utils.Args, target utils.Target) {
+	client := awsClients.SSMClient(args.Profile)
 
-	input := &ssm.StartSessionInput{Target: &target}
+	input := &ssm.StartSessionInput{Target: &target.ResolvedName}
 	target_json, _ := json.Marshal(input)
 
-	if session_json == "" {
+	if target.SessionInfo == "" {
 		resp, err := client.StartSession(context.TODO(), input)
 		utils.Panic(err)
 		session_raw, _ := json.Marshal(resp)
-		session_json = string(session_raw)
+		target.SessionInfo = string(session_raw)
 	}
 
-	args := []string{"session-manager-plugin", string(session_json), "us-east-1", "StartSession", profile, string(target_json), "https://ssm.us-east-1.amazonaws.com"}
-	session.ValidateInputAndStartSession(args, os.Stdout)
+	connect_args := []string{"session-manager-plugin", target.SessionInfo, "us-east-1", "StartSession", args.Profile, string(target_json), "https://ssm.us-east-1.amazonaws.com"}
+	session.ValidateInputAndStartSession(connect_args, os.Stdout)
 }
