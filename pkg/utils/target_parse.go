@@ -7,8 +7,6 @@ import (
 
 func TargetType(target string) string {
 	switch {
-	case regex_match("[[:xdigit:]]{32}", target):
-		return "ECS_ID"
 	case regex_match("^mi-[[:xdigit:]]{17}", target):
 		return "SSM_MI_ID"
 	case regex_match("^i-[[:xdigit:]]{8}", target):
