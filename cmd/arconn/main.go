@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"runtime"
 
 	"github.com/ruelala/arconn/pkg/awsClients/ec2"
@@ -34,14 +35,26 @@ func main() {
 	} else {
 		target = ecs.Lookup(args, target)
 
+		// this value gets set if a valid ECS target is found
+		// if thats found, then we dont need to look in EC2.
 		if target.SessionInfo == "" {
 			target = ec2.Lookup(args, target)
 		}
 	}
 
+	// because ECS exec command generates its own session object
+	// if that is set in the target struct, it doesnt need to be looked up in ssm.
+	// if its not however, the target needs to be identified in ssm and
+	// a session has to be created.
 	if target.SessionInfo == "" {
 		target = ssm.Lookup(args, target)
 	}
+
+	if !target.Resolved {
+		fmt.Println(fmt.Sprintf("target %s couldnt be found in ECS, EC2, or SSM", args.Target))
+		os.Exit(1)
+	}
+
 	fmt.Println(fmt.Sprintf("connecting to %s", target.ResolvedName))
 	ssm.Connect(args, target)
 }
