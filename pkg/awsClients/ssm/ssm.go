@@ -32,6 +32,7 @@ func Lookup(args utils.Args, target utils.Target) utils.Target {
 		target.ResolvedName = *resp[0].InstanceId
 	}
 	instance_online(resp, target.ResolvedName)
+	target.Resolved = true
 	return target
 }
 
