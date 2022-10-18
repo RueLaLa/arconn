@@ -27,7 +27,12 @@ func Lookup(args utils.Args, target utils.Target) utils.Target {
 	}
 	resp := lookup_instance_in_ssm(client, ssm_target)
 	if len(resp) > 1 {
-		target.ResolvedName = filter_matches(resp, args.Target)
+		filtered := filter_matches(resp, args.Target)
+		if filtered == "" {
+			return target
+		} else {
+			target.ResolvedName = filtered
+		}
 	} else {
 		target.ResolvedName = *resp[0].InstanceId
 	}
@@ -43,6 +48,9 @@ type Instance struct {
 func filter_matches(instances []types.InstanceInformation, target string) string {
 	var matches []Instance
 	for _, instance := range instances {
+		if instance.Name == nil {
+			continue
+		}
 		if *instance.Name == target {
 			matches = append(matches, Instance{
 				Name: *instance.Name,
