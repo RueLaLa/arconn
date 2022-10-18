@@ -13,14 +13,19 @@ Head on over to the [latest release](https://github.com/RueLaLa/arconn/releases/
 ```
 arconn
 
+  Usage:
+    arconn [target]
+
+  Positional Variables:
+    target   name of target (Required)
+
   Flags:
        --version   Displays the program version string.
     -h --help      Displays help with available flag, subcommand, and positional value parameters.
     -p --profile   aws profile to use
-    -t --target    resource to target for session connection
 ```
 
-`arconn` accepts two flags, one for the AWS profile name (`-p`) to which the CLI uses for target resolution and SSM connections. The second is the target flag (`-t`). The target flag accepts a few types of inputs. These inputs could be the name of an ECS container or EC2 instance, The IP of an EC2 instance, or an EC2 instance ID.
+`arconn` accepts one flag and one positional argument, one for the AWS profile name (`-p`) to which the CLI uses for target resolution and SSM connections. The second is positional argument: target. The target argument accepts a few types of inputs. These inputs could be the name of an ECS container or EC2 instance, The IP of an EC2 instance, or an EC2 instance ID.
 
 `arconn` will then attempt to resolve the target input to a real resource running in AWS. It will also check that the target resource is capable of accepting an SSM session. If one or more are found, you are prompted to choose which resource to connect to, and then an SSM session will be started. If an IP or EC2 instance ID are specified, a lot of the resolution logic is skipped and `arconn` will simply ensure it exists and that it can receive SSM sessions. If the target it an arbitrary name, the order of precedence for resolution is ECS first, then EC2.
 
