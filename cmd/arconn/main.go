@@ -28,11 +28,12 @@ func main() {
 	target.Type = utils.TargetType(args.Target)
 	fmt.Println(fmt.Sprintf("computed target type: %s", target.Type))
 
-	if (target.Type == "EC2_ID") || (target.Type == "SSM_MI_ID") {
+	switch target.Type {
+	case "EC2_ID", "SSM_MI_ID":
 		target.ResolvedName = args.Target
-	} else if target.Type == "IP" {
+	case "IP":
 		target = ec2.Lookup(args, target)
-	} else {
+	default:
 		target = ecs.Lookup(args, target)
 
 		// this value gets set if a valid ECS target is found
