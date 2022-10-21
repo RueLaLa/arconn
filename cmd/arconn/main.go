@@ -22,25 +22,40 @@ func print_version() string {
 }
 
 func main() {
-	profile, target := utils.ParseFlags(print_version())
-	ttype := utils.TargetType(target)
-	fmt.Println(fmt.Sprintf("input target type: %s", ttype))
+	args := utils.ParseFlags(print_version())
+	target := utils.Target{}
 
-	resolved_target := ""
-	session := ""
-	if ttype != "EC2_ID" {
-		resolved_target, session = ecs.Lookup(profile, target)
-		if session == "" {
-			resolved_target = ec2.Lookup(profile, target, ttype)
+	target.Type = utils.TargetType(args.Target)
+	fmt.Println(fmt.Sprintf("computed target type: %s", target.Type))
+
+	switch target.Type {
+	case "EC2_ID", "SSM_MI_ID":
+		target.ResolvedName = args.Target
+	case "IP":
+		target = ec2.Lookup(args, target)
+	default:
+		target = ecs.Lookup(args, target)
+
+		// this value gets set if a valid ECS target is found
+		// if thats found, then we dont need to look in EC2.
+		if target.SessionInfo == "" {
+			target = ec2.Lookup(args, target)
 		}
-	} else {
-		resolved_target = target
 	}
 
-	if resolved_target == "" {
+	// because ECS exec command generates its own session object
+	// if that is set in the target struct, it doesnt need to be looked up in ssm.
+	// if its not however, the target needs to be identified in ssm and
+	// a session has to be created.
+	if target.SessionInfo == "" {
+		target = ssm.Lookup(args, target)
+	}
+
+	if !target.Resolved {
+		fmt.Println(fmt.Sprintf("target %s couldnt be found in ECS, EC2, or SSM", args.Target))
 		os.Exit(1)
 	}
 
-	fmt.Println(fmt.Sprintf("connecting to %s", resolved_target))
-	ssm.Connect(profile, session, resolved_target)
+	fmt.Println(fmt.Sprintf("connecting to %s", target.ResolvedName))
+	ssm.Connect(args, target)
 }
