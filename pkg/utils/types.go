@@ -1,7 +1,7 @@
 package utils
 
 type Args struct {
-	Profile, Target string
+	Profile, Target, Command string
 }
 
 type Target struct {
