@@ -16,8 +16,13 @@ func Panic(err error) {
 
 func ParseFlags(version_string string) Args {
 	args := Args{}
+
 	args.Profile = os.Getenv("AWS_PROFILE")
 	flaggy.String(&args.Profile, "p", "profile", "aws profile to use")
+
+	args.Command = "/bin/bash"
+	flaggy.String(&args.Command, "c", "command", "command to pass to ecs targets")
+
 	flaggy.AddPositionalValue(&args.Target, "target", 1, true, "name of target")
 	flaggy.SetVersion(version_string)
 	flaggy.Parse()
