@@ -31,7 +31,7 @@ func Lookup(args utils.Args, target utils.Target) utils.Target {
 	}
 
 	input := &ecs.ExecuteCommandInput{
-		Command:     aws.String("/bin/bash"),
+		Command:     aws.String(args.Command),
 		Interactive: true,
 		Task:        aws.String(chosen_task.TaskArn.String()),
 		Cluster:     aws.String(chosen_task.ClusterArn.String()),
@@ -41,6 +41,7 @@ func Lookup(args utils.Args, target utils.Target) utils.Target {
 	session_info, _ := json.Marshal(out.Session)
 	target.SessionInfo = string(session_info)
 	target.ResolvedName = construct_target(chosen_task)
+	target.Resolved = true 
 	return target
 }
 
@@ -136,9 +137,7 @@ func describe_tasks(client *ecs.Client, cluster string, tasks []string, target s
 			if len(task.Containers) == 0 {
 				continue
 			}
-			task_arn_split := strings.Split(*task.TaskArn, "/")
-			task_id := task_arn_split[len(task_arn_split)-1]
-			if ((*task.Containers[0].Name == target) || (task_id == target)) && (task.EnableExecuteCommand == true) {
+			if (*task.Containers[0].Name == target) && (task.EnableExecuteCommand == true) {
 				carn, _ := arn.Parse(cluster)
 				tarn, _ := arn.Parse(*task.TaskArn)
 				task_info = append(task_info,
