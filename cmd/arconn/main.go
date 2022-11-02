@@ -26,7 +26,7 @@ func main() {
 	target := utils.Target{}
 
 	if args.PortForward != "" {
-		target.PortForwarding = utils.ResolvePortForwarding(args, target)
+		target.PortForwarding = utils.ResolvePortForwarding(args.PortForward)
 	}
 
 	target.Type = utils.TargetType(args.Target)
