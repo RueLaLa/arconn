@@ -31,8 +31,8 @@ func regex_match(pattern, target string) bool {
 	}
 }
 
-func ResolvePortForwarding(args Args, target Target) []string {
+func ResolvePortForwarding(pf string) []string {
 	var portForward []string
-	portForward = strings.Split(args.PortForward, ":")
+	portForward = strings.Split(pf, ":")
 	return portForward
 }
