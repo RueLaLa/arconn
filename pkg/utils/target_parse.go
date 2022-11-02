@@ -3,6 +3,7 @@ package utils
 import (
 	"net"
 	"regexp"
+	"strings"
 )
 
 func TargetType(target string) string {
@@ -28,4 +29,10 @@ func regex_match(pattern, target string) bool {
 	} else {
 		return false
 	}
+}
+
+func ResolvePortForwarding(args Args, target Target) []string {
+	var portForward []string
+	portForward = strings.Split(args.PortForward, ":")
+	return portForward
 }
