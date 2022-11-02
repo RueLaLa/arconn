@@ -126,7 +126,16 @@ func instance_online(resp []types.InstanceInformation, target string) bool {
 func Connect(args utils.Args, target utils.Target) {
 	client := awsClients.SSMClient(args.Profile)
 
-	input := &ssm.StartSessionInput{Target: &target.ResolvedName}
+	input := &ssm.StartSessionInput{}
+	input.Target = &target.ResolvedName
+	if len(target.PortForwarding) > 0 {
+		type param map[string][]string
+		p := make(param)
+		p["portNumber"] = []string{target.PortForwarding[1]}
+		p["localPortNumber"] = []string{target.PortForwarding[0]}
+		input.DocumentName = aws.String("AWS-StartPortForwardingSession")
+		input.Parameters = p
+	}
 	target_json, _ := json.Marshal(input)
 
 	if target.SessionInfo == "" {
