@@ -41,7 +41,7 @@ func Lookup(args utils.Args, target utils.Target) utils.Target {
 	session_info, _ := json.Marshal(out.Session)
 	target.SessionInfo = string(session_info)
 	target.ResolvedName = construct_target(chosen_task)
-	target.Resolved = true 
+	target.Resolved = true
 	return target
 }
 
