@@ -18,9 +18,11 @@ arconn
     target   name of target (Required)
 
   Flags:
-       --version   Displays the program version string.
-    -h --help      Displays help with available flag, subcommand, and positional value parameters.
-    -p --profile   aws profile to use
+    --version          Displays the program version string.
+    -h --help          Displays help with available flag, subcommand, and positional value parameters.
+    -p --profile       aws profile to use
+    -c --command       command to pass to ecs targets (default: /bin/bash)
+    -P --portforward   port forward map to use with ec2 targets (syntax 80 or 80:80 local:remote)
 ```
 
 `arconn` accepts one flag and one positional argument, one for the AWS profile name (`-p`) to which the CLI uses for target resolution and SSM connections. The second is positional argument: target. The target argument accepts a few types of inputs. These inputs could be the name of an ECS container or EC2 instance, The IP of an EC2 instance, or an EC2 instance ID. More information about acceptable inputs and the search logic is described below.
