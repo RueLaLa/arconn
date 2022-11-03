@@ -34,5 +34,8 @@ func regex_match(pattern, target string) bool {
 func ResolvePortForwarding(pf string) []string {
 	var portForward []string
 	portForward = strings.Split(pf, ":")
+	if len(portForward) == 1 {
+		portForward = append(portForward, portForward[0])
+	}
 	return portForward
 }
