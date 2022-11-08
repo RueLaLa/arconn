@@ -25,6 +25,10 @@ func main() {
 	args := utils.ParseFlags(print_version())
 	target := utils.Target{}
 
+	if args.PortForward != "" {
+		target.PortForwarding = utils.ResolvePortForwarding(args.PortForward)
+	}
+
 	target.Type = utils.TargetType(args.Target)
 	fmt.Println(fmt.Sprintf("computed target type: %s", target.Type))
 

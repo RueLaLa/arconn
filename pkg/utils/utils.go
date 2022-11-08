@@ -23,6 +23,8 @@ func ParseFlags(version_string string) Args {
 	args.Command = "/bin/bash"
 	flaggy.String(&args.Command, "c", "command", "command to pass to ecs targets")
 
+	flaggy.String(&args.PortForward, "P", "portforward", "port forward map to use with ec2 targets (syntax 80 or 80:80 local:remote)")
+
 	flaggy.AddPositionalValue(&args.Target, "target", 1, true, "name of target")
 	flaggy.SetVersion(version_string)
 	flaggy.Parse()
