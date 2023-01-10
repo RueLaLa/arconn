@@ -133,7 +133,12 @@ func Connect(args utils.Args, target utils.Target) {
 		p := make(param)
 		p["portNumber"] = []string{target.PortForwarding[1]}
 		p["localPortNumber"] = []string{target.PortForwarding[0]}
-		input.DocumentName = aws.String("AWS-StartPortForwardingSession")
+		if target.RemoteHost != "" {
+			p["host"] = []string{target.RemoteHost}
+			input.DocumentName = aws.String("AWS-StartPortForwardingSessionToRemoteHost")
+		} else {
+			input.DocumentName = aws.String("AWS-StartPortForwardingSession")
+		}
 		input.Parameters = p
 	}
 	target_json, _ := json.Marshal(input)
