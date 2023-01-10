@@ -24,8 +24,3 @@ archives:
       - goos: windows
         format: zip
     name_template: "{{.ProjectName}}-{{.Version}}-{{.Os}}-{{.Arch}}"
-    replacements:
-      amd64: amd64
-      darwin: mac
-      linux: linux
-      windows: windows
