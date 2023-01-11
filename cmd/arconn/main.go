@@ -29,6 +29,10 @@ func main() {
 		target.PortForwarding = utils.ResolvePortForwarding(args.PortForward)
 	}
 
+	if args.RemoteHost != "" {
+		target.RemoteHost = args.RemoteHost
+	}
+
 	target.Type = utils.TargetType(args.Target)
 	fmt.Println(fmt.Sprintf("computed target type: %s", target.Type))
 
