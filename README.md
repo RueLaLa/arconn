@@ -1,4 +1,4 @@
-arconn: **A**ws **R**emote **CONN**ect
+arconn: Aws Remote CONNect
 ===
 
 ## Introduction
