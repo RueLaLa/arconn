@@ -127,7 +127,7 @@ func Connect(args utils.Args, target utils.Target) {
 	client := awsClients.SSMClient(args.Profile)
 
 	input := &ssm.StartSessionInput{}
-	input.Reason = aws.String(fmt.Sprintf("arconn session for %s", utils.GetUser()))
+	input.Reason = aws.String("arconn session")
 	input.Target = &target.ResolvedName
 	if len(target.PortForwarding) > 0 {
 		type param map[string][]string
