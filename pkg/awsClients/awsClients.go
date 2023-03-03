@@ -6,9 +6,11 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ecs"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	"github.com/ruelala/arconn/pkg/utils"
 )
 
 func AwsConfig(profile string) aws.Config {
@@ -16,6 +18,9 @@ func AwsConfig(profile string) aws.Config {
 		context.TODO(),
 		config.WithSharedConfigProfile(profile),
 		config.WithRegion("us-east-1"),
+		config.WithAssumeRoleCredentialOptions(func(options *stscreds.AssumeRoleOptions) {
+			options.RoleSessionName = utils.GetSessionName()
+		}),
 	)
 	if err != nil {
 		log.Fatal(err)
