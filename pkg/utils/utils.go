@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"os"
+	"os/user"
 
 	"github.com/integrii/flaggy"
 )
@@ -12,6 +13,14 @@ func Panic(err error) {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+}
+
+func GetUser() string {
+	user, err := user.Current()
+	if err != nil {
+		return "unknown user"
+	}
+	return user.Username
 }
 
 func ParseFlags(version_string string) Args {
