@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"runtime"
 
 	"github.com/ruelala/arconn/pkg/awsClients/ec2"
 	"github.com/ruelala/arconn/pkg/awsClients/ecs"
@@ -11,18 +10,8 @@ import (
 	"github.com/ruelala/arconn/pkg/utils"
 )
 
-// these get passed in as ldflags by goreleaser
-var version string
-var commit string
-var date string
-
-func print_version() string {
-	go_version := runtime.Version()
-	return fmt.Sprintf("arconn %s built with %s on commit %s at %s", version, go_version, commit, date)
-}
-
 func main() {
-	args := utils.ParseFlags(print_version())
+	args := utils.ParseFlags()
 	target := utils.Target{}
 
 	if args.PortForward != "" {
