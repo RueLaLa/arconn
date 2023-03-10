@@ -33,18 +33,12 @@ func main() {
 	default:
 		target = ecs.Lookup(args, target)
 
-		// this value gets set if a valid ECS target is found
-		// if thats found, then we dont need to look in EC2.
-		if target.SessionInfo == "" {
+		if target.Resolved != true {
 			target = ec2.Lookup(args, target)
 		}
 	}
 
-	// because ECS exec command generates its own session object
-	// if that is set in the target struct, it doesnt need to be looked up in ssm.
-	// if its not however, the target needs to be identified in ssm and
-	// a session has to be created.
-	if target.SessionInfo == "" {
+	if target.Type != "ECS" {
 		target = ssm.Lookup(args, target)
 	}
 

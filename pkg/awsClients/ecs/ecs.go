@@ -30,17 +30,21 @@ func Lookup(args utils.Args, target utils.Target) utils.Target {
 		chosen_task = prompt_for_choice(tasks)
 	}
 
-	input := &ecs.ExecuteCommandInput{
-		Command:     aws.String(args.Command),
-		Interactive: true,
-		Task:        aws.String(chosen_task.TaskArn.String()),
-		Cluster:     aws.String(chosen_task.ClusterArn.String()),
+	if args.Command != "" {
+		input := &ecs.ExecuteCommandInput{
+			Command:     aws.String(args.Command),
+			Interactive: true,
+			Task:        aws.String(chosen_task.TaskArn.String()),
+			Cluster:     aws.String(chosen_task.ClusterArn.String()),
+		}
+		out, err := client.ExecuteCommand(context.TODO(), input)
+		utils.Panic(err)
+		session_info, _ := json.Marshal(out.Session)
+		target.SessionInfo = string(session_info)
 	}
-	out, err := client.ExecuteCommand(context.TODO(), input)
-	utils.Panic(err)
-	session_info, _ := json.Marshal(out.Session)
-	target.SessionInfo = string(session_info)
+
 	target.ResolvedName = construct_target(chosen_task)
+	target.Type = "ECS"
 	target.Resolved = true
 	return target
 }
@@ -52,9 +56,8 @@ func construct_target(task Task) string {
 		fmt.Sprintf("task/%s/", cluster_name),
 	)
 	target := fmt.Sprintf(
-		"ecs:%s_%s_%s-%s",
+		"ecs:%s_%s_%s",
 		cluster_name,
-		task_id,
 		task_id,
 		task.RuntimeId,
 	)

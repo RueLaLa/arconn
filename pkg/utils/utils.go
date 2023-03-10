@@ -36,7 +36,7 @@ func GetSessionName() string {
 
 func ParseFlags() Args {
 	args := Args{
-		Command:     "/bin/bash",
+		Command:     "",
 		Profile:     os.Getenv("AWS_PROFILE"),
 		PortForward: "",
 		RemoteHost:  "",
@@ -44,7 +44,7 @@ func ParseFlags() Args {
 
 	flaggy.String(&args.Profile, "p", "profile", "aws profile to use")
 	flaggy.String(&args.Target, "t", "target", "name of target")
-	flaggy.String(&args.Command, "c", "command", "command to pass to ecs targets")
+	flaggy.String(&args.Command, "c", "command", "command to pass to ecs targets instead of default shell")
 	flaggy.String(&args.PortForward, "P", "port-forward", "port forward map to use with ec2 targets (syntax 80 or 80:80 local:remote)")
 	flaggy.String(&args.RemoteHost, "r", "remote-host", "remote host to port forward to")
 
