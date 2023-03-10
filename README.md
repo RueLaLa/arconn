@@ -14,10 +14,10 @@ arconn
   Flags:
        --version        Displays the program version string.
     -h --help           Displays help with available flag, subcommand, and positional value parameters.
-    -p --profile        aws profile to use
+    -p --profile        aws profile to use (defaults to value of AWS_PROFILE env var)
     -t --target         name of target (required)
     -c --command        command to pass to ecs targets instead of default shell
-    -P --port-forward   port forward map to use with ec2 targets (syntax 80 or 80:80 local:remote)
+    -P --port-forward   port forward map (syntax 80 or 80:80 local:remote)
     -r --remote-host    remote host to port forward to
 ```
 
