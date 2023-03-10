@@ -38,6 +38,9 @@ func main() {
 		}
 	}
 
+	// ECS does not register containers in SSM as inventory
+	// so we skip the lookup and assume the task is available
+	// for sessions.
 	if target.Type != "ECS" {
 		target = ssm.Lookup(args, target)
 	}
