@@ -1,13 +1,12 @@
 builds:
   - main: ./cmd/arconn/main.go
     goos:
-      - windows
       - darwin
       - linux
+      - windows
     goarch:
       - amd64
-    env:
-      - CGO_ENABLED=0
+      - arm64
     ldflags:
       - -s -w -X github.com/ruelala/arconn/pkg/utils.version={{.Version}}
       - -s -w -X github.com/ruelala/arconn/pkg/utils.commit={{.Commit}}
@@ -24,7 +23,5 @@ changelog:
 
 archives:
   - id: default
-    format_overrides:
-      - goos: windows
-        format: zip
+    format: zip
     name_template: "{{.ProjectName}}-{{.Version}}-{{.Os}}-{{.Arch}}"
