@@ -42,9 +42,9 @@ arconn -p myProfile -t 10.0.1.66 -p 3306:3306 -r myDatabase.domain
 
 Target type | Sessions | Custom commands | Port forwarding | Port forwarding to remote hosts | Supported Input formats
 :---------- | :------- | :-------------- | :-------------- | :------------------------------ | :----------------------
-EC2 | :heavy_check_mark: | :x: | :heavy_check_mark: | :heavy_check_mark: | <ul><li>Instance ID</li><li>IP Address</li><li>Name</li></ul>
-ECS | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | <ul><li>Name</li></ul>
-SSM Managed Instance | :heavy_check_mark: | :question: | :question: | :question: | <ul><li>Managed Instance Id</li><li>Name</li></ul>
+EC2 | :white_check_mark: | :x: | :white_check_mark: | :white_check_mark: | <ul><li>Instance ID</li><li>IP Address</li><li>Name</li></ul>
+ECS | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | <ul><li>Name</li></ul>
+SSM Managed Instance | :white_check_mark: | :question: | :question: | :question: | <ul><li>Managed Instance Id</li><li>Name</li></ul>
 
 ## Permissions
 `arconn` uses the below permissions to some extent across the application:
