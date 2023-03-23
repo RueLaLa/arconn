@@ -28,6 +28,8 @@ func main() {
 	switch target.Type {
 	case "EC2_ID", "SSM_MI_ID":
 		target.ResolvedName = args.Target
+	case "ECS_ID":
+		target = ecs.Lookup(args, target)
 	case "IP":
 		target = ec2.Lookup(args, target)
 	default:
