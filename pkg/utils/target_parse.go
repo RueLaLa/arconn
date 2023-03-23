@@ -14,6 +14,8 @@ func TargetType(target string) string {
 		return "EC2_ID"
 	case regex_match("^i-[[:xdigit:]]{17}", target):
 		return "EC2_ID"
+	case regex_match("^ecs:.*_[[:xdigit:]]{32}_[[:xdigit:]]{64}", target):
+		return "ECS_ID"
 	case net.ParseIP(target) != nil:
 		return "IP"
 	default:

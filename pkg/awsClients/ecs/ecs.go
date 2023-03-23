@@ -18,7 +18,7 @@ func Lookup(args utils.Args, target utils.Target) utils.Target {
 	fmt.Println("searching ECS for matching tasks")
 	client := awsClients.ECSClient(args.Profile)
 	clusters := list_clusters(client)
-	tasks := find_matching_tasks(client, clusters, args.Target)
+	tasks := find_matching_tasks(client, clusters, args, target.Type)
 
 	chosen_task := Task{}
 	if len(tasks) == 0 {
@@ -99,7 +99,7 @@ type Task struct {
 	RuntimeId  string
 }
 
-func find_matching_tasks(client *ecs.Client, clusters []string, target string) []Task {
+func find_matching_tasks(client *ecs.Client, clusters []string, args utils.Args, ttype string) []Task {
 	next_token := ""
 	all_tasks := [][]Task{}
 	for _, cluster := range clusters {
@@ -118,12 +118,12 @@ func find_matching_tasks(client *ecs.Client, clusters []string, target string) [
 			}
 		}
 		all_tasks = append(all_tasks,
-			describe_tasks(client, cluster, cluster_tasks, target))
+			describe_tasks(client, cluster, cluster_tasks, args, ttype))
 	}
 	return clean(all_tasks)
 }
 
-func describe_tasks(client *ecs.Client, cluster string, tasks []string, target string) []Task {
+func describe_tasks(client *ecs.Client, cluster string, tasks []string, args utils.Args, ttype string) []Task {
 	split_tasks := utils.ChunkBy(tasks, 100)
 	task_info := []Task{}
 	for _, set := range split_tasks {
@@ -140,7 +140,12 @@ func describe_tasks(client *ecs.Client, cluster string, tasks []string, target s
 			if len(task.Containers) == 0 {
 				continue
 			}
-			if (*task.Containers[0].Name == target) && (task.EnableExecuteCommand == true) {
+			if (ttype == "ECS_ID") && (strings.Split(args.Target, "_")[2] != *task.Containers[0].RuntimeId) {
+				continue
+			} else if (ttype == "NAME") && (*task.Containers[0].Name != args.Target) {
+				continue
+			}
+			if task.EnableExecuteCommand == true {
 				carn, _ := arn.Parse(cluster)
 				tarn, _ := arn.Parse(*task.TaskArn)
 				task_info = append(task_info,
