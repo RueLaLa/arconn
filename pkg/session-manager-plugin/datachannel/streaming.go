@@ -777,7 +777,7 @@ func (dataChannel *DataChannel) HandleAcknowledgeMessage(
 }
 
 // handleChannelClosedMessage exits the shell
-func (dataChannel DataChannel) HandleChannelClosedMessage(log log.T, stopHandler Stop, sessionId string, outputMessage message.ClientMessage) {
+func (dataChannel *DataChannel) HandleChannelClosedMessage(log log.T, stopHandler Stop, sessionId string, outputMessage message.ClientMessage) {
 	var (
 		channelClosedMessage message.ChannelClosed
 		err                  error
