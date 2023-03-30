@@ -106,6 +106,7 @@ var handleStreamMessageResendTimeout = func(session *Session, log log.T) {
 		for {
 			// Repeat this loop for every 200ms
 			time.Sleep(config.ResendSleepInterval)
+			if session.DataChannel.IsSessionEnded() { return }
 			if <-session.DataChannel.IsStreamMessageResendTimeout() {
 				log.Errorf("Terminating session %s as the stream data was not processed before timeout.", session.SessionId)
 				if err := session.TerminateSession(log); err != nil {
