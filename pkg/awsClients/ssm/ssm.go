@@ -156,5 +156,5 @@ func Connect(args utils.Args, target utils.Target) {
 	connect_args := []string{"session-manager-plugin", target.SessionInfo, "us-east-1", "StartSession", args.Profile, string(target_json), "https://ssm.us-east-1.amazonaws.com"}
 	log.SetLevel(log.InfoLevel)
 	session.ValidateInputAndStartSession(connect_args, os.Stdout)
-	os.Exit(0)
+	fmt.Println("AFTERRRRR")
 }

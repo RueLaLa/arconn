@@ -71,7 +71,7 @@ func (s *ShellSession) handleKeyboardInput() (err error) {
 	defer keyboard.Close()
 
 	for {
-		if s.Session.DataChannel.GetSessionEnded() == true {
+		if <-s.Session.DataChannel.IsSessionEnded() {
 			return
 		}
 

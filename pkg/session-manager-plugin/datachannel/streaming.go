@@ -62,11 +62,11 @@ type IDataChannel interface {
 	RegisterOutputStreamHandler(handler OutputStreamDataMessageHandler, isSessionSpecificHandler bool)
 	DeregisterOutputStreamHandler(handler OutputStreamDataMessageHandler)
 	IsSessionTypeSet() chan bool
+	IsSessionEnded() bool
 	IsStreamMessageResendTimeout() chan bool
 	GetSessionType() string
 	SetSessionType(sessionType string)
 	GetSessionProperties() interface{}
-	GetSessionEnded() interface{}
 	GetWsChannel() communicator.IWebSocketChannel
 	SetWsChannel(wsChannel communicator.IWebSocketChannel)
 	GetStreamDataSequenceNumber() int64
@@ -107,6 +107,7 @@ type DataChannel struct {
 	isSessionTypeSet  chan bool
 	sessionProperties interface{}
 	sessionEnded      bool
+	sessionEndedChan      chan bool
 
 	// Used to detect if resending a streaming message reaches timeout
 	isStreamMessageResendTimeout chan bool
@@ -189,6 +190,7 @@ func (dataChannel *DataChannel) Initialize(clientId string, sessionId string, ta
 	dataChannel.wsChannel = &communicator.WebSocketChannel{}
 	dataChannel.encryptionEnabled = false
 	dataChannel.isSessionTypeSet = make(chan bool, 1)
+	dataChannel.sessionEnded = false
 	dataChannel.isStreamMessageResendTimeout = make(chan bool, 1)
 	dataChannel.sessionType = ""
 	dataChannel.IsAwsCliUpgradeNeeded = isAwsCliUpgradeNeeded
@@ -334,7 +336,7 @@ func (dataChannel *DataChannel) ResendStreamDataMessageScheduler() (err error) {
 		for {
 			time.Sleep(config.ResendSleepInterval)
 
-			if dataChannel.sessionEnded == true {
+			if dataChannel.IsSessionEnded() {
 				return
 			}
 
@@ -428,7 +430,7 @@ func (dataChannel *DataChannel) OutputMessageHandler(stopHandler Stop, sessionID
 	case message.StartPublicationMessage, message.PausePublicationMessage:
 		return nil
 	default:
-		log.Warn("Invalid message type received: %s", outputMessage.MessageType)
+		log.Warnf("Invalid message type received: %s", outputMessage.MessageType)
 	}
 
 	return nil
@@ -511,7 +513,7 @@ func (dataChannel *DataChannel) handleHandshakeComplete(clientMessage message.Cl
 		dataChannel.isSessionTypeSet <- false
 	}
 
-	log.Debugf("Handshake Complete. Handshake time to complete is: %s seconds",
+	log.Debugf("Handshake Complete. Handshake time to complete is: %f seconds",
 		handshakeComplete.HandshakeTimeToComplete.Seconds())
 
 	if handshakeComplete.CustomerMessage != "" {
@@ -791,6 +793,7 @@ func (dataChannel *DataChannel) HandleChannelClosedMessage(stopHandler Stop, ses
 		fmt.Fprintf(os.Stdout, "\n\nSessionId: %s : %s\n\n", sessionId, channelClosedMessage.Output)
 	}
 	dataChannel.sessionEnded = true
+	dataChannel.sessionEndedChan <- true
 	dataChannel.Close()
 
 	stopHandler()
@@ -895,6 +898,11 @@ func (dataChannel *DataChannel) IsSessionTypeSet() chan bool {
 	return dataChannel.isSessionTypeSet
 }
 
+// IsSessionEnded returns SessionEnded boolean of the dataChannel
+func (dataChannel *DataChannel) IsSessionEnded() bool {
+	return dataChannel.sessionEnded
+}
+
 // IsStreamMessageResendTimeout checks if resending a streaming message reaches timeout
 func (dataChannel *DataChannel) IsStreamMessageResendTimeout() chan bool {
 	return dataChannel.isStreamMessageResendTimeout
@@ -914,11 +922,6 @@ func (dataChannel *DataChannel) GetSessionType() string {
 // GetSessionProperties returns SessionProperties of the dataChannel
 func (dataChannel *DataChannel) GetSessionProperties() interface{} {
 	return dataChannel.sessionProperties
-}
-
-// GetSessionEnded returns SessionEnded boolean of the dataChannel
-func (dataChannel *DataChannel) GetSessionEnded() interface{} {
-	return dataChannel.sessionEnded
 }
 
 // GetWsChannel returns WsChannel of the dataChannel

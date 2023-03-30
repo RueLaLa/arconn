@@ -25,7 +25,6 @@ import (
 	"time"
 
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/message"
-	log "github.com/sirupsen/logrus"
 )
 
 // disableEchoAndInputBuffering disables echo to avoid double echo and disable input buffering
@@ -58,39 +57,36 @@ func (s *ShellSession) Stop() {
 	return
 }
 
+func readStdin(s *ShellSession, stdinBytesLen int, err error, ch chan<- []byte) {
+}
+
 // handleKeyboardInput handles input entered by customer on terminal
 func (s *ShellSession) handleKeyboardInput() {
-		var (
-			stdinBytesLen int
-			err           error
-		)
+	var (
+		stdinBytesLen int
+		err           error
+	)
 
-		//handle double echo and disable input buffering
-		s.disableEchoAndInputBuffering()
-
+	s.disableEchoAndInputBuffering()
+	ch := make(chan []byte)
+	go func(ch chan []byte) {
+		reader := bufio.NewReader(os.Stdin)
 		for {
-			if s.Session.DataChannel.GetSessionEnded() == true {
-				break
-			}
 			stdinBytes := make([]byte, StdinBufferLimit)
-			reader := bufio.NewReader(os.Stdin)
+			stdinBytesLen, _ = reader.Read(stdinBytes)
+			ch <- stdinBytes
+		}
+	}(ch)
 
-			if stdinBytesLen, err = reader.Read(stdinBytes); err != nil {
-				if s.Session.DataChannel.GetSessionEnded() == true {
-					break
-				}
-				log.Errorf("Unable read from Stdin: %v", err)
-				break
-			}
-
+	for {
+		select {
+		case <-time.After(time.Millisecond):
+			if s.Session.DataChannel.IsSessionEnded() == true { return }
+		case stdinBytes := <-ch:
 			if err = s.Session.DataChannel.SendInputDataMessage(message.Output, stdinBytes[:stdinBytesLen]); err != nil {
-				if s.Session.DataChannel.GetSessionEnded() == true {
-					break
-				}
-				log.Errorf("Failed to send UTF8 char: %v", err)
 				break
 			}
-			// sleep to limit the rate of data transfer
 			time.Sleep(time.Millisecond)
 		}
+	}
 }

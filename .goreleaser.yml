@@ -7,6 +7,10 @@ builds:
     goarch:
       - amd64
       - arm64
+    goamd64:
+      - v1
+      - v2
+      - v3
     ldflags:
       - -s -w -X github.com/ruelala/arconn/pkg/utils.version={{.Version}}
       - -s -w -X github.com/ruelala/arconn/pkg/utils.commit={{.Commit}}

@@ -106,7 +106,7 @@ var handleStreamMessageResendTimeout = func(session *Session) {
 		for {
 			// Repeat this loop for every 200ms
 			time.Sleep(config.ResendSleepInterval)
-			if session.DataChannel.GetSessionEnded() == true {
+			if session.DataChannel.IsSessionEnded() {
 				return
 			}
 			if <-session.DataChannel.IsStreamMessageResendTimeout() {

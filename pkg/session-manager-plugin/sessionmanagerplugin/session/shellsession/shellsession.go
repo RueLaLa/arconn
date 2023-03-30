@@ -86,7 +86,7 @@ func (s *ShellSession) handleControlSignals() {
 		signal.Notify(signals, sessionutil.ControlSignals...)
 		for {
 			sig := <-signals
-			if s.DataChannel.GetSessionEnded() == true {
+			if s.DataChannel.IsSessionEnded() {
 				return
 			}
 			if b, ok := sessionutil.SignalsByteMap[sig]; ok {
@@ -108,7 +108,7 @@ func (s *ShellSession) handleTerminalResize() {
 	)
 	go func() {
 		for {
-			if s.Session.DataChannel.GetSessionEnded() == true {
+			if s.DataChannel.IsSessionEnded() {
 				return
 			}
 
