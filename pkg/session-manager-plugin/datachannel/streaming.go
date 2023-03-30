@@ -190,7 +190,7 @@ func (dataChannel *DataChannel) Initialize(log log.T, clientId string, sessionId
 	dataChannel.wsChannel = &communicator.WebSocketChannel{}
 	dataChannel.encryptionEnabled = false
 	dataChannel.isSessionTypeSet = make(chan bool, 1)
-	dataChannel.isSessionEnded = false 
+	dataChannel.isSessionEnded = false
 	dataChannel.isStreamMessageResendTimeout = make(chan bool, 1)
 	dataChannel.sessionType = ""
 	dataChannel.IsAwsCliUpgradeNeeded = isAwsCliUpgradeNeeded
@@ -337,7 +337,9 @@ func (dataChannel *DataChannel) ResendStreamDataMessageScheduler(log log.T) (err
 	go func() {
 		for {
 			time.Sleep(config.ResendSleepInterval)
-			if dataChannel.IsSessionEnded() == true { return }
+			if dataChannel.IsSessionEnded() == true {
+				return
+			}
 			dataChannel.OutgoingMessageBuffer.Mutex.Lock()
 			streamMessageElement := dataChannel.OutgoingMessageBuffer.Messages.Front()
 			dataChannel.OutgoingMessageBuffer.Mutex.Unlock()
