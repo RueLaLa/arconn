@@ -78,9 +78,13 @@ func (s *ShellSession) handleKeyboardInput(log log.T) (err error) {
 	for {
 		select {
 		case <-time.After(50 * time.Millisecond):
-			if s.Session.DataChannel.IsSessionEnded() == true { return }
+			if s.Session.DataChannel.IsSessionEnded() == true {
+				return
+			}
 		case stdinBytes := <-ch:
-			if s.Session.DataChannel.IsSessionEnded() == true { return }
+			if s.Session.DataChannel.IsSessionEnded() == true {
+				return
+			}
 			if err = s.Session.DataChannel.SendInputDataMessage(log, message.Output, stdinBytes[:stdinBytesLen]); err != nil {
 				return
 			}
