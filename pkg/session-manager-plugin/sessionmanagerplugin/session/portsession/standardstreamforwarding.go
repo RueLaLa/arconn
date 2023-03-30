@@ -42,7 +42,7 @@ func (p *StandardStreamForwarding) IsStreamNotSet() (status bool) {
 func (p *StandardStreamForwarding) Stop() {
 	p.inputStream.Close()
 	p.outputStream.Close()
-	os.Exit(0)
+	return
 }
 
 // InitializeStreams initializes the streams with its file descriptors
