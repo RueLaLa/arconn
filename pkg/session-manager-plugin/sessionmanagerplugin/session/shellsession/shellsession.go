@@ -86,9 +86,6 @@ func (s *ShellSession) handleControlSignals(log log.T) {
 		signal.Notify(signals, sessionutil.ControlSignals...)
 		for {
 			sig := <-signals
-			if s.DataChannel.IsSessionEnded() {
-				return
-			}
 			if b, ok := sessionutil.SignalsByteMap[sig]; ok {
 				if err := s.DataChannel.SendInputDataMessage(log, message.Output, []byte{b}); err != nil {
 					log.Errorf("Failed to send control signals: %v", err)
@@ -108,10 +105,6 @@ func (s *ShellSession) handleTerminalResize(log log.T) {
 	)
 	go func() {
 		for {
-			if s.DataChannel.IsSessionEnded() {
-				return
-			}
-
 			// If running from IDE GetTerminalSizeCall will not work. Supply a fixed width and height value.
 			if width, height, err = GetTerminalSizeCall(int(os.Stdout.Fd())); err != nil {
 				width = 300
