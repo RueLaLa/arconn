@@ -84,7 +84,7 @@ func (s *ShellSession) handleKeyboardInput() {
 			if s.Session.DataChannel.IsSessionEnded() == true { return }
 		case stdinBytes := <-ch:
 			if err = s.Session.DataChannel.SendInputDataMessage(message.Output, stdinBytes[:stdinBytesLen]); err != nil {
-				break
+				return
 			}
 			time.Sleep(time.Millisecond)
 		}
