@@ -3,6 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
+	"log"
+	"net/http"
+	_ "net/http/pprof"
 
 	"github.com/ruelala/arconn/pkg/awsClients/ec2"
 	"github.com/ruelala/arconn/pkg/awsClients/ecs"
@@ -11,6 +14,10 @@ import (
 )
 
 func main() {
+	go func() {
+		log.Println(http.ListenAndServe("0.0.0.0:6060", nil))
+	}()
+
 	args := utils.ParseFlags()
 	target := utils.Target{}
 

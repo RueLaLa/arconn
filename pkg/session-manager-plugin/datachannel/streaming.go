@@ -337,9 +337,6 @@ func (dataChannel *DataChannel) ResendStreamDataMessageScheduler(log log.T) (err
 	go func() {
 		for {
 			time.Sleep(config.ResendSleepInterval)
-			if dataChannel.IsSessionEnded() == true {
-				return
-			}
 			dataChannel.OutgoingMessageBuffer.Mutex.Lock()
 			streamMessageElement := dataChannel.OutgoingMessageBuffer.Messages.Front()
 			dataChannel.OutgoingMessageBuffer.Mutex.Unlock()
