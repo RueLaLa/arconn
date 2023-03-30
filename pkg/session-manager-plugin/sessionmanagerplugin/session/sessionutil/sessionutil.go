@@ -14,10 +14,8 @@
 // Package sessionutil provides utility for sessions.
 package sessionutil
 
-import "github.com/ruelala/arconn/pkg/session-manager-plugin/log"
-
-func NewDisplayMode(log log.T) DisplayMode {
+func NewDisplayMode() DisplayMode {
 	displayMode := DisplayMode{}
-	displayMode.InitDisplayMode(log)
+	displayMode.InitDisplayMode()
 	return displayMode
 }

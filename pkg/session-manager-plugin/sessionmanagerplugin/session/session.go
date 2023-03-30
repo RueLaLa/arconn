@@ -26,12 +26,12 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/datachannel"
-	"github.com/ruelala/arconn/pkg/session-manager-plugin/log"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/message"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/retry"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/sdkutil"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/sessionmanagerplugin/session/sessionutil"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/version"
+	log "github.com/sirupsen/logrus"
 	"github.com/twinj/uuid"
 )
 
@@ -45,21 +45,21 @@ const (
 var SessionRegistry = map[string]ISessionPlugin{}
 
 type ISessionPlugin interface {
-	SetSessionHandlers(log.T) error
-	ProcessStreamMessagePayload(log log.T, streamDataMessage message.ClientMessage) (isHandlerReady bool, err error)
-	Initialize(log log.T, sessionVar *Session)
+	SetSessionHandlers() error
+	ProcessStreamMessagePayload(streamDataMessage message.ClientMessage) (isHandlerReady bool, err error)
+	Initialize(sessionVar *Session)
 	Stop()
 	Name() string
 }
 
 type ISession interface {
-	Execute(log.T) error
-	OpenDataChannel(log.T) error
-	ProcessFirstMessage(log log.T, outputMessage message.ClientMessage) (isHandlerReady bool, err error)
+	Execute() error
+	OpenDataChannel() error
+	ProcessFirstMessage(outputMessage message.ClientMessage) (isHandlerReady bool, err error)
 	Stop()
-	GetResumeSessionParams(log.T) (string, error)
-	ResumeSessionHandler(log.T) error
-	TerminateSession(log.T) error
+	GetResumeSessionParams() (string, error)
+	ResumeSessionHandler() error
+	TerminateSession() error
 }
 
 func init() {
@@ -87,28 +87,31 @@ type Session struct {
 }
 
 // startSession create the datachannel for session
-var startSession = func(session *Session, log log.T) error {
-	return session.Execute(log)
+var startSession = func(session *Session) error {
+	return session.Execute()
 }
 
 // setSessionHandlersWithSessionType set session handlers based on session subtype
-var setSessionHandlersWithSessionType = func(session *Session, log log.T) error {
+var setSessionHandlersWithSessionType = func(session *Session) error {
 	// SessionType is set inside DataChannel
 	sessionSubType := SessionRegistry[session.SessionType]
-	sessionSubType.Initialize(log, session)
-	return sessionSubType.SetSessionHandlers(log)
+	sessionSubType.Initialize(session)
+	return sessionSubType.SetSessionHandlers()
 }
 
 // Set up a scheduler to listen on stream data resend timeout event
-var handleStreamMessageResendTimeout = func(session *Session, log log.T) {
+var handleStreamMessageResendTimeout = func(session *Session) {
 	log.Tracef("Setting up scheduler to listen on IsStreamMessageResendTimeout event.")
 	go func() {
 		for {
 			// Repeat this loop for every 200ms
 			time.Sleep(config.ResendSleepInterval)
+			if session.DataChannel.GetSessionEnded() == true {
+				return
+			}
 			if <-session.DataChannel.IsStreamMessageResendTimeout() {
 				log.Errorf("Terminating session %s as the stream data was not processed before timeout.", session.SessionId)
-				if err := session.TerminateSession(log); err != nil {
+				if err := session.TerminateSession(); err != nil {
 					log.Errorf("Unable to terminate session upon stream data timeout. %v", err)
 				}
 				return
@@ -138,7 +141,6 @@ func ValidateInputAndStartSession(args []string, out io.Writer) {
 		ssmEndpoint        string
 		target             string
 	)
-	log := log.Logger(true, "session-manager-plugin")
 	uuid.SwitchFormat(uuid.FormatCanonical)
 
 	if len(args) == 1 {
@@ -202,26 +204,27 @@ func ValidateInputAndStartSession(args []string, out io.Writer) {
 		return
 	}
 
-	if err = startSession(&session, log); err != nil {
+	if err = startSession(&session); err != nil {
 		log.Errorf("Cannot perform start session: %v", err)
 		fmt.Fprintf(out, "Cannot perform start session: %v\n", err)
 		return
 	}
+	return
 }
 
 // Execute create data channel and start the session
-func (s *Session) Execute(log log.T) (err error) {
+func (s *Session) Execute() (err error) {
 	fmt.Fprintf(os.Stdout, "\nStarting session with SessionId: %s\n", s.SessionId)
 
 	// sets the display mode
-	s.DisplayMode = sessionutil.NewDisplayMode(log)
+	s.DisplayMode = sessionutil.NewDisplayMode()
 
-	if err = s.OpenDataChannel(log); err != nil {
+	if err = s.OpenDataChannel(); err != nil {
 		log.Errorf("Error in Opening data channel: %v", err)
 		return
 	}
 
-	handleStreamMessageResendTimeout(s, log)
+	handleStreamMessageResendTimeout(s)
 
 	// The session type is set either by handshake or the first packet received.
 	if !<-s.DataChannel.IsSessionTypeSet() {
@@ -230,7 +233,7 @@ func (s *Session) Execute(log log.T) (err error) {
 	} else {
 		s.SessionType = s.DataChannel.GetSessionType()
 		s.SessionProperties = s.DataChannel.GetSessionProperties()
-		if err = setSessionHandlersWithSessionType(s, log); err != nil {
+		if err = setSessionHandlersWithSessionType(s); err != nil {
 			log.Errorf("Session ending with error: %v", err)
 			return
 		}

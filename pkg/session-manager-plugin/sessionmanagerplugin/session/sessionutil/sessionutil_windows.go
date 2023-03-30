@@ -23,8 +23,8 @@ import (
 	"os"
 	"syscall"
 
-	"github.com/ruelala/arconn/pkg/session-manager-plugin/log"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/message"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/sys/windows"
 )
 
@@ -34,7 +34,7 @@ type DisplayMode struct {
 	handle windows.Handle
 }
 
-func (d *DisplayMode) InitDisplayMode(log log.T) {
+func (d *DisplayMode) InitDisplayMode() {
 	var (
 		state          uint32
 		fileDescriptor int
@@ -61,7 +61,7 @@ func (d *DisplayMode) InitDisplayMode(log log.T) {
 }
 
 // DisplayMessage function displays the output on the screen
-func (d *DisplayMode) DisplayMessage(log log.T, message message.ClientMessage) {
+func (d *DisplayMode) DisplayMessage(message message.ClientMessage) {
 	var (
 		done *uint32
 		err  error
@@ -72,13 +72,13 @@ func (d *DisplayMode) DisplayMessage(log log.T, message message.ClientMessage) {
 	if err = windows.WriteFile(d.handle, message.Payload, done, nil); err != nil {
 		log.Errorf("error occurred while writing to file: %v", err)
 		fmt.Fprintf(os.Stdout, "\nError getting the output. %s\n", err.Error())
-		os.Exit(0)
+		return
 	}
 }
 
 // NewListener starts a new socket listener on the address.
 // unix sockets are not supported in older windows versions, start tcp loopback server in such cases
-func NewListener(log log.T, address string) (net.Listener, error) {
+func NewListener(address string) (net.Listener, error) {
 	if listener, err := net.Listen("unix", address); err != nil {
 		log.Infof("Failed to open unix socket listener, %v. Starting TCP listener.", err)
 		return net.Listen("tcp", "localhost:0")

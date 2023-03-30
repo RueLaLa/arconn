@@ -19,15 +19,15 @@ import (
 	sdkSession "github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/aws/aws-sdk-go/service/kms/kmsiface"
-	"github.com/ruelala/arconn/pkg/session-manager-plugin/log"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/sdkutil"
+	log "github.com/sirupsen/logrus"
 )
 
 // KMSKeySizeInBytes is the key size that is fetched from KMS. 64 bytes key is split into two halves.
 // First half 32 bytes key is used by agent for encryption and second half 32 bytes by clients like cli/console
 const KMSKeySizeInBytes int64 = 64
 
-func NewKMSService(log log.T) (kmsService *kms.KMS, err error) {
+func NewKMSService() (kmsService *kms.KMS, err error) {
 	var session *sdkSession.Session
 	if session, err = sdkutil.GetDefaultSession(); err != nil {
 		return nil, err
@@ -37,7 +37,7 @@ func NewKMSService(log log.T) (kmsService *kms.KMS, err error) {
 	return kmsService, nil
 }
 
-func KMSDecrypt(log log.T, svc kmsiface.KMSAPI, ciptherTextBlob []byte, encryptionContext map[string]*string) (plainText []byte, err error) {
+func KMSDecrypt(svc kmsiface.KMSAPI, ciptherTextBlob []byte, encryptionContext map[string]*string) (plainText []byte, err error) {
 	output, err := svc.Decrypt(&kms.DecryptInput{
 		CiphertextBlob:    ciptherTextBlob,
 		EncryptionContext: encryptionContext})

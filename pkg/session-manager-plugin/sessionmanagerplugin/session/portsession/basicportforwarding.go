@@ -23,11 +23,11 @@ import (
 	"time"
 
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/config"
-	"github.com/ruelala/arconn/pkg/session-manager-plugin/log"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/message"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/sessionmanagerplugin/session"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/sessionmanagerplugin/session/sessionutil"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/version"
+	log "github.com/sirupsen/logrus"
 )
 
 // BasicPortForwarding is type of port session
@@ -47,7 +47,7 @@ var getNewListener = func(listenerType string, listenerAddress string) (listener
 }
 
 // acceptConnection returns connection to the listener
-var acceptConnection = func(log log.T, listener net.Listener) (tcpConn net.Conn, err error) {
+var acceptConnection = func(listener net.Listener) (tcpConn net.Conn, err error) {
 	return listener.Accept()
 }
 
@@ -61,20 +61,20 @@ func (p *BasicPortForwarding) Stop() {
 	if p.stream != nil {
 		(*p.stream).Close()
 	}
-	os.Exit(0)
+	return
 }
 
 // InitializeStreams establishes connection and initializes the stream
-func (p *BasicPortForwarding) InitializeStreams(log log.T, agentVersion string) (err error) {
-	p.handleControlSignals(log)
-	if err = p.startLocalConn(log); err != nil {
+func (p *BasicPortForwarding) InitializeStreams(agentVersion string) (err error) {
+	p.handleControlSignals()
+	if err = p.startLocalConn(); err != nil {
 		return
 	}
 	return
 }
 
 // ReadStream reads data from the stream
-func (p *BasicPortForwarding) ReadStream(log log.T) (err error) {
+func (p *BasicPortForwarding) ReadStream() (err error) {
 	msg := make([]byte, config.StreamDataPayloadSize)
 	for {
 		numBytes, err := (*p.stream).Read(msg)
@@ -83,12 +83,12 @@ func (p *BasicPortForwarding) ReadStream(log log.T) (err error) {
 				p.portParameters.PortNumber, err)
 
 			// Send DisconnectToPort flag to agent when client tcp connection drops to ensure agent closes tcp connection too with server port
-			if err = p.session.DataChannel.SendFlag(log, message.DisconnectToPort); err != nil {
+			if err = p.session.DataChannel.SendFlag(message.DisconnectToPort); err != nil {
 				log.Errorf("Failed to send packet: %v", err)
 				return err
 			}
 
-			if err = p.reconnect(log); err != nil {
+			if err = p.reconnect(); err != nil {
 				return err
 			}
 
@@ -97,7 +97,7 @@ func (p *BasicPortForwarding) ReadStream(log log.T) (err error) {
 		}
 
 		log.Tracef("Received message of size %d from stdin.", numBytes)
-		if err = p.session.DataChannel.SendInputDataMessage(log, message.Output, msg[:numBytes]); err != nil {
+		if err = p.session.DataChannel.SendInputDataMessage(message.Output, msg[:numBytes]); err != nil {
 			log.Errorf("Failed to send packet: %v", err)
 			return err
 		}
@@ -113,7 +113,7 @@ func (p *BasicPortForwarding) WriteStream(outputMessage message.ClientMessage) e
 }
 
 // startLocalConn establishes a new local connection to forward remote server packets to
-func (p *BasicPortForwarding) startLocalConn(log log.T) (err error) {
+func (p *BasicPortForwarding) startLocalConn() (err error) {
 	// When localPortNumber is not specified, set port number to 0 to let net.conn choose an open port at random
 	localPortNumber := p.portParameters.LocalPortNumber
 	if p.portParameters.LocalPortNumber == "" {
@@ -121,13 +121,13 @@ func (p *BasicPortForwarding) startLocalConn(log log.T) (err error) {
 	}
 
 	var listener net.Listener
-	if listener, err = p.startLocalListener(log, localPortNumber); err != nil {
+	if listener, err = p.startLocalListener(localPortNumber); err != nil {
 		log.Errorf("Unable to open tcp connection to port. %v", err)
 		return err
 	}
 
 	var tcpConn net.Conn
-	if tcpConn, err = acceptConnection(log, listener); err != nil {
+	if tcpConn, err = acceptConnection(listener); err != nil {
 		log.Errorf("Failed to accept connection with error. %v", err)
 		return err
 	}
@@ -141,7 +141,7 @@ func (p *BasicPortForwarding) startLocalConn(log log.T) (err error) {
 }
 
 // startLocalListener starts a local listener to given address
-func (p *BasicPortForwarding) startLocalListener(log log.T, portNumber string) (listener net.Listener, err error) {
+func (p *BasicPortForwarding) startLocalListener(portNumber string) (listener net.Listener, err error) {
 	var displayMessage string
 	switch p.portParameters.LocalConnectionType {
 	case "unix":
@@ -164,34 +164,35 @@ func (p *BasicPortForwarding) startLocalListener(log log.T, portNumber string) (
 }
 
 // handleControlSignals handles terminate signals
-func (p *BasicPortForwarding) handleControlSignals(log log.T) {
+func (p *BasicPortForwarding) handleControlSignals() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, sessionutil.ControlSignals...)
 	go func() {
 		<-c
 		fmt.Println("Terminate signal received, exiting.")
 
-		if version.DoesAgentSupportTerminateSessionFlag(log, p.session.DataChannel.GetAgentVersion()) {
-			if err := p.session.DataChannel.SendFlag(log, message.TerminateSession); err != nil {
+		if version.DoesAgentSupportTerminateSessionFlag(p.session.DataChannel.GetAgentVersion()) {
+			if err := p.session.DataChannel.SendFlag(message.TerminateSession); err != nil {
 				log.Errorf("Failed to send TerminateSession flag: %v", err)
 			}
 			fmt.Fprintf(os.Stdout, "\n\nExiting session with sessionId: %s.\n\n", p.sessionId)
 			p.Stop()
 		} else {
-			p.session.TerminateSession(log)
+			p.session.TerminateSession()
 		}
 	}()
 }
 
 // reconnect closes existing connection, listens to new connection and accept it
-func (p *BasicPortForwarding) reconnect(log log.T) (err error) {
+func (p *BasicPortForwarding) reconnect() (err error) {
 	// close existing connection as it is in a state from which data cannot be read
 	(*p.stream).Close()
 
 	// wait for new connection on listener and accept it
 	var conn net.Conn
-	if conn, err = acceptConnection(log, *p.listener); err != nil {
-		return log.Errorf("Failed to accept connection with error. %v", err)
+	if conn, err = acceptConnection(*p.listener); err != nil {
+		log.Errorf("Failed to accept connection with error. %v", err)
+		return
 	}
 	p.stream = &conn
 

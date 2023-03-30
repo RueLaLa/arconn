@@ -22,8 +22,8 @@ import (
 	"time"
 
 	"github.com/eiannone/keyboard"
-	"github.com/ruelala/arconn/pkg/session-manager-plugin/log"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/message"
+	log "github.com/sirupsen/logrus"
 )
 
 // Byte array for key inputs
@@ -55,11 +55,11 @@ var specialKeysInputMap = map[keyboard.Key][]byte{
 
 // stop restores the terminal settings and exits
 func (s *ShellSession) Stop() {
-	os.Exit(0)
+	return
 }
 
 // handleKeyboardInput handles input entered by customer on terminal
-func (s *ShellSession) handleKeyboardInput(log log.T) (err error) {
+func (s *ShellSession) handleKeyboardInput() (err error) {
 	var (
 		character rune         //character input from keyboard
 		key       keyboard.Key //special keys like arrows and function keys
@@ -71,13 +71,17 @@ func (s *ShellSession) handleKeyboardInput(log log.T) (err error) {
 	defer keyboard.Close()
 
 	for {
+		if s.Session.DataChannel.GetSessionEnded() == true {
+			return
+		}
+
 		if character, key, err = keyboard.GetKey(); err != nil {
 			log.Errorf("Failed to get the key stroke: %v", err)
 			return
 		}
 		if character != 0 {
 			charBytes := []byte(string(character))
-			if err = s.Session.DataChannel.SendInputDataMessage(log, message.Output, charBytes); err != nil {
+			if err = s.Session.DataChannel.SendInputDataMessage(message.Output, charBytes); err != nil {
 				log.Errorf("Failed to send UTF8 char: %v", err)
 				break
 			}
@@ -86,7 +90,7 @@ func (s *ShellSession) handleKeyboardInput(log log.T) (err error) {
 			if byteValue, ok := specialKeysInputMap[key]; ok {
 				keyBytes = byteValue
 			}
-			if err = s.Session.DataChannel.SendInputDataMessage(log, message.Output, keyBytes); err != nil {
+			if err = s.Session.DataChannel.SendInputDataMessage(message.Output, keyBytes); err != nil {
 				log.Errorf("Failed to send UTF8 char: %v", err)
 				break
 			}

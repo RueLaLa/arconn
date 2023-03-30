@@ -22,10 +22,10 @@ import (
 	"time"
 
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/config"
-	"github.com/ruelala/arconn/pkg/session-manager-plugin/log"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/message"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/sessionmanagerplugin/session"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/sessionmanagerplugin/session/sessionutil"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
@@ -55,39 +55,42 @@ func (ShellSession) Name() string {
 	return config.ShellPluginName
 }
 
-func (s *ShellSession) Initialize(log log.T, sessionVar *session.Session) {
+func (s *ShellSession) Initialize(sessionVar *session.Session) {
 	s.Session = *sessionVar
 	s.DataChannel.RegisterOutputStreamHandler(s.ProcessStreamMessagePayload, true)
 	s.DataChannel.GetWsChannel().SetOnMessage(
 		func(input []byte) {
-			s.DataChannel.OutputMessageHandler(log, s.Stop, s.SessionId, input)
+			s.DataChannel.OutputMessageHandler(s.Stop, s.SessionId, input)
 		})
 }
 
 // StartSession takes input and write it to data channel
-func (s *ShellSession) SetSessionHandlers(log log.T) (err error) {
+func (s *ShellSession) SetSessionHandlers() (err error) {
 
 	// handle re-size
-	s.handleTerminalResize(log)
+	s.handleTerminalResize()
 
 	// handle control signals
-	s.handleControlSignals(log)
+	s.handleControlSignals()
 
 	//handles keyboard input
-	err = s.handleKeyboardInput(log)
+	s.handleKeyboardInput()
 
 	return
 }
 
 // handleControlSignals handles control signals when given by user
-func (s *ShellSession) handleControlSignals(log log.T) {
+func (s *ShellSession) handleControlSignals() {
 	go func() {
 		signals := make(chan os.Signal, 1)
 		signal.Notify(signals, sessionutil.ControlSignals...)
 		for {
 			sig := <-signals
+			if s.DataChannel.GetSessionEnded() == true {
+				return
+			}
 			if b, ok := sessionutil.SignalsByteMap[sig]; ok {
-				if err := s.DataChannel.SendInputDataMessage(log, message.Output, []byte{b}); err != nil {
+				if err := s.DataChannel.SendInputDataMessage(message.Output, []byte{b}); err != nil {
 					log.Errorf("Failed to send control signals: %v", err)
 				}
 			}
@@ -96,7 +99,7 @@ func (s *ShellSession) handleControlSignals(log log.T) {
 }
 
 // handleTerminalResize checks size of terminal every 500ms and sends size data.
-func (s *ShellSession) handleTerminalResize(log log.T) {
+func (s *ShellSession) handleTerminalResize() {
 	var (
 		width         int
 		height        int
@@ -105,6 +108,10 @@ func (s *ShellSession) handleTerminalResize(log log.T) {
 	)
 	go func() {
 		for {
+			if s.Session.DataChannel.GetSessionEnded() == true {
+				return
+			}
+
 			// If running from IDE GetTerminalSizeCall will not work. Supply a fixed width and height value.
 			if width, height, err = GetTerminalSizeCall(int(os.Stdout.Fd())); err != nil {
 				width = 300
@@ -123,7 +130,7 @@ func (s *ShellSession) handleTerminalResize(log log.T) {
 					log.Errorf("Cannot marshall size data: %v", err)
 				}
 				log.Debugf("Sending input size data: %s", inputSizeData)
-				if err = s.DataChannel.SendInputDataMessage(log, message.Size, inputSizeData); err != nil {
+				if err = s.DataChannel.SendInputDataMessage(message.Size, inputSizeData); err != nil {
 					log.Errorf("Failed to Send size data: %v", err)
 				}
 			}
@@ -134,7 +141,7 @@ func (s *ShellSession) handleTerminalResize(log log.T) {
 }
 
 // ProcessStreamMessagePayload prints payload received on datachannel to console
-func (s ShellSession) ProcessStreamMessagePayload(log log.T, outputMessage message.ClientMessage) (isHandlerReady bool, err error) {
-	s.DisplayMode.DisplayMessage(log, outputMessage)
+func (s ShellSession) ProcessStreamMessagePayload(outputMessage message.ClientMessage) (isHandlerReady bool, err error) {
+	s.DisplayMode.DisplayMessage(outputMessage)
 	return true, nil
 }

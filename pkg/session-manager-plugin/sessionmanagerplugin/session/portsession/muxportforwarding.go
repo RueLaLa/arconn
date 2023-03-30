@@ -30,11 +30,11 @@ import (
 	"time"
 
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/config"
-	"github.com/ruelala/arconn/pkg/session-manager-plugin/log"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/message"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/sessionmanagerplugin/session"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/sessionmanagerplugin/session/sessionutil"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/version"
+	log "github.com/sirupsen/logrus"
 	"github.com/xtaci/smux"
 	"golang.org/x/sync/errgroup"
 )
@@ -87,33 +87,33 @@ func (p *MuxPortForwarding) Stop() {
 		p.muxClient.close()
 	}
 	p.cleanUp()
-	os.Exit(0)
+	return
 }
 
 // InitializeStreams initializes i/o streams
-func (p *MuxPortForwarding) InitializeStreams(log log.T, agentVersion string) (err error) {
+func (p *MuxPortForwarding) InitializeStreams(agentVersion string) (err error) {
 
-	p.handleControlSignals(log)
+	p.handleControlSignals()
 	p.socketFile = getUnixSocketPath(p.sessionId, os.TempDir(), "session_manager_plugin_mux.sock")
 
-	if err = p.initialize(log, agentVersion); err != nil {
+	if err = p.initialize(agentVersion); err != nil {
 		p.cleanUp()
 	}
 	return
 }
 
 // ReadStream reads data from different connections
-func (p *MuxPortForwarding) ReadStream(log log.T) (err error) {
+func (p *MuxPortForwarding) ReadStream() (err error) {
 	g, ctx := errgroup.WithContext(context.Background())
 
 	// reads data from smux client and transfers to server over datachannel
 	g.Go(func() error {
-		return p.transferDataToServer(log, ctx)
+		return p.transferDataToServer(ctx)
 	})
 
 	// set up network listener on SSM port and handle client connections
 	g.Go(func() error {
-		return p.handleClientConnections(log, ctx)
+		return p.handleClientConnections(ctx)
 	})
 
 	return g.Wait()
@@ -143,11 +143,11 @@ func (p *MuxPortForwarding) cleanUp() {
 }
 
 // initialize opens a network connection that acts as smux client
-func (p *MuxPortForwarding) initialize(log log.T, agentVersion string) (err error) {
+func (p *MuxPortForwarding) initialize(agentVersion string) (err error) {
 
 	// open a network listener
 	var listener net.Listener
-	if listener, err = sessionutil.NewListener(log, p.socketFile); err != nil {
+	if listener, err = sessionutil.NewListener(p.socketFile); err != nil {
 		return
 	}
 
@@ -168,7 +168,7 @@ func (p *MuxPortForwarding) initialize(log log.T, agentVersion string) (err erro
 			return err
 		} else {
 			smuxConfig := smux.DefaultConfig()
-			if version.DoesAgentSupportDisableSmuxKeepAlive(log, agentVersion) {
+			if version.DoesAgentSupportDisableSmuxKeepAlive(agentVersion) {
 				// Disable smux KeepAlive or else it breaks Session Manager idle timeout.
 				smuxConfig.KeepAliveDisabled = false
 			}
@@ -185,14 +185,14 @@ func (p *MuxPortForwarding) initialize(log log.T, agentVersion string) (err erro
 }
 
 // handleControlSignals handles terminate signals
-func (p *MuxPortForwarding) handleControlSignals(log log.T) {
+func (p *MuxPortForwarding) handleControlSignals() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, sessionutil.ControlSignals...)
 	go func() {
 		<-c
 		fmt.Println("Terminate signal received, exiting.")
 
-		if err := p.session.DataChannel.SendFlag(log, message.TerminateSession); err != nil {
+		if err := p.session.DataChannel.SendFlag(message.TerminateSession); err != nil {
 			log.Errorf("Failed to send TerminateSession flag: %v", err)
 		}
 		fmt.Fprintf(os.Stdout, "\n\nExiting session with sessionId: %s.\n\n", p.sessionId)
@@ -201,7 +201,7 @@ func (p *MuxPortForwarding) handleControlSignals(log log.T) {
 }
 
 // transferDataToServer reads from smux client connection and sends on data channel
-func (p *MuxPortForwarding) transferDataToServer(log log.T, ctx context.Context) (err error) {
+func (p *MuxPortForwarding) transferDataToServer(ctx context.Context) (err error) {
 	msg := make([]byte, config.StreamDataPayloadSize)
 	for {
 		select {
@@ -215,7 +215,7 @@ func (p *MuxPortForwarding) transferDataToServer(log log.T, ctx context.Context)
 			}
 
 			log.Tracef("Received message of size %d from mux client.", numBytes)
-			if err = p.session.DataChannel.SendInputDataMessage(log, message.Output, msg[:numBytes]); err != nil {
+			if err = p.session.DataChannel.SendInputDataMessage(message.Output, msg[:numBytes]); err != nil {
 				log.Errorf("Failed to send packet on data channel: %v", err)
 				return
 			}
@@ -226,7 +226,7 @@ func (p *MuxPortForwarding) transferDataToServer(log log.T, ctx context.Context)
 }
 
 // handleClientConnections sets up network server on local ssm port to accept connections from clients (browser/terminal)
-func (p *MuxPortForwarding) handleClientConnections(log log.T, ctx context.Context) (err error) {
+func (p *MuxPortForwarding) handleClientConnections(ctx context.Context) (err error) {
 	var (
 		listener   net.Listener
 		displayMsg string

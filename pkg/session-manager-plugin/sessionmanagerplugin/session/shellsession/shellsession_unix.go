@@ -24,8 +24,8 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/ruelala/arconn/pkg/session-manager-plugin/log"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/message"
+	log "github.com/sirupsen/logrus"
 )
 
 // disableEchoAndInputBuffering disables echo to avoid double echo and disable input buffering
@@ -55,32 +55,42 @@ func setState(state *bytes.Buffer) error {
 func (s *ShellSession) Stop() {
 	setState(&s.originalSttyState)
 	setState(bytes.NewBufferString("echo")) // for linux and ubuntu
-	os.Exit(0)
+	return
 }
 
 // handleKeyboardInput handles input entered by customer on terminal
-func (s *ShellSession) handleKeyboardInput(log log.T) (err error) {
-	var (
-		stdinBytesLen int
-	)
+func (s *ShellSession) handleKeyboardInput() {
+		var (
+			stdinBytesLen int
+			err           error
+		)
 
-	//handle double echo and disable input buffering
-	s.disableEchoAndInputBuffering()
+		//handle double echo and disable input buffering
+		s.disableEchoAndInputBuffering()
 
-	stdinBytes := make([]byte, StdinBufferLimit)
-	reader := bufio.NewReader(os.Stdin)
-	for {
-		if stdinBytesLen, err = reader.Read(stdinBytes); err != nil {
-			log.Errorf("Unable read from Stdin: %v", err)
-			break
+		for {
+			if s.Session.DataChannel.GetSessionEnded() == true {
+				break
+			}
+			stdinBytes := make([]byte, StdinBufferLimit)
+			reader := bufio.NewReader(os.Stdin)
+
+			if stdinBytesLen, err = reader.Read(stdinBytes); err != nil {
+				if s.Session.DataChannel.GetSessionEnded() == true {
+					break
+				}
+				log.Errorf("Unable read from Stdin: %v", err)
+				break
+			}
+
+			if err = s.Session.DataChannel.SendInputDataMessage(message.Output, stdinBytes[:stdinBytesLen]); err != nil {
+				if s.Session.DataChannel.GetSessionEnded() == true {
+					break
+				}
+				log.Errorf("Failed to send UTF8 char: %v", err)
+				break
+			}
+			// sleep to limit the rate of data transfer
+			time.Sleep(time.Millisecond)
 		}
-
-		if err = s.Session.DataChannel.SendInputDataMessage(log, message.Output, stdinBytes[:stdinBytesLen]); err != nil {
-			log.Errorf("Failed to send UTF8 char: %v", err)
-			break
-		}
-		// sleep to limit the rate of data transfer
-		time.Sleep(time.Millisecond)
-	}
-	return
 }

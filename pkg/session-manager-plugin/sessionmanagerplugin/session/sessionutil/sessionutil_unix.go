@@ -23,23 +23,21 @@ import (
 	"net"
 	"os"
 
-	"github.com/ruelala/arconn/pkg/session-manager-plugin/log"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/message"
 )
 
 type DisplayMode struct {
 }
 
-func (d *DisplayMode) InitDisplayMode(log log.T) {
-}
+func (d *DisplayMode) InitDisplayMode() {}
 
 // DisplayMessage function displays the output on the screen
-func (d *DisplayMode) DisplayMessage(log log.T, message message.ClientMessage) {
+func (d *DisplayMode) DisplayMessage(message message.ClientMessage) {
 	var out io.Writer = os.Stdout
 	fmt.Fprint(out, string(message.Payload))
 }
 
 // NewListener starts a new socket listener on the address.
-func NewListener(log log.T, address string) (net.Listener, error) {
+func NewListener(address string) (net.Listener, error) {
 	return net.Listen("unix", address)
 }

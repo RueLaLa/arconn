@@ -20,9 +20,9 @@ import (
 	"time"
 
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/config"
-	"github.com/ruelala/arconn/pkg/session-manager-plugin/log"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/message"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/sessionmanagerplugin/session"
+	log "github.com/sirupsen/logrus"
 )
 
 type StandardStreamForwarding struct {
@@ -42,27 +42,27 @@ func (p *StandardStreamForwarding) IsStreamNotSet() (status bool) {
 func (p *StandardStreamForwarding) Stop() {
 	p.inputStream.Close()
 	p.outputStream.Close()
-	os.Exit(0)
+	return
 }
 
 // InitializeStreams initializes the streams with its file descriptors
-func (p *StandardStreamForwarding) InitializeStreams(log log.T, agentVersion string) (err error) {
+func (p *StandardStreamForwarding) InitializeStreams(agentVersion string) (err error) {
 	p.inputStream = os.Stdin
 	p.outputStream = os.Stdout
 	return
 }
 
 // ReadStream reads data from the input stream
-func (p *StandardStreamForwarding) ReadStream(log log.T) (err error) {
+func (p *StandardStreamForwarding) ReadStream() (err error) {
 	msg := make([]byte, config.StreamDataPayloadSize)
 	for {
 		numBytes, err := p.inputStream.Read(msg)
 		if err != nil {
-			return p.handleReadError(log, err)
+			return p.handleReadError(err)
 		}
 
 		log.Tracef("Received message of size %d from stdin.", numBytes)
-		if err = p.session.DataChannel.SendInputDataMessage(log, message.Output, msg[:numBytes]); err != nil {
+		if err = p.session.DataChannel.SendInputDataMessage(message.Output, msg[:numBytes]); err != nil {
 			log.Errorf("Failed to send packet: %v", err)
 			return err
 		}
@@ -78,7 +78,7 @@ func (p *StandardStreamForwarding) WriteStream(outputMessage message.ClientMessa
 }
 
 // handleReadError handles read error
-func (p *StandardStreamForwarding) handleReadError(log log.T, err error) error {
+func (p *StandardStreamForwarding) handleReadError(err error) error {
 	if err == io.EOF {
 		log.Infof("Session to instance[%s] on port[%s] was closed.", p.session.TargetId, p.portParameters.PortNumber)
 		return nil

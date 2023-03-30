@@ -15,7 +15,6 @@
 package message
 
 import (
-	"github.com/ruelala/arconn/pkg/session-manager-plugin/log"
 	"github.com/twinj/uuid"
 )
 
@@ -102,12 +101,12 @@ type SizeData struct {
 
 type IClientMessage interface {
 	Validate() error
-	DeserializeClientMessage(log log.T, input []byte) (err error)
-	SerializeClientMessage(log log.T) (result []byte, err error)
-	DeserializeDataStreamAcknowledgeContent(log log.T) (dataStreamAcknowledge AcknowledgeContent, err error)
-	DeserializeChannelClosedMessage(log log.T) (channelClosed ChannelClosed, err error)
-	DeserializeHandshakeRequest(log log.T) (handshakeRequest HandshakeRequestPayload, err error)
-	DeserializeHandshakeComplete(log log.T) (handshakeComplete HandshakeCompletePayload, err error)
+	DeserializeClientMessage(input []byte) (err error)
+	SerializeClientMessage() (result []byte, err error)
+	DeserializeDataStreamAcknowledgeContent() (dataStreamAcknowledge AcknowledgeContent, err error)
+	DeserializeChannelClosedMessage() (channelClosed ChannelClosed, err error)
+	DeserializeHandshakeRequest() (handshakeRequest HandshakeRequestPayload, err error)
+	DeserializeHandshakeComplete() (handshakeComplete HandshakeCompletePayload, err error)
 }
 
 // ClientMessage represents a message for client to send/receive. ClientMessage Message in MGS is equivalent to MDS' InstanceMessage.

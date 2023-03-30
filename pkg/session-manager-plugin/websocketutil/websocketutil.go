@@ -18,7 +18,7 @@ import (
 	"errors"
 
 	"github.com/gorilla/websocket"
-	"github.com/ruelala/arconn/pkg/session-manager-plugin/log"
+	log "github.com/sirupsen/logrus"
 )
 
 // IWebsocketUtil is the interface for the websocketutil.
@@ -30,23 +30,20 @@ type IWebsocketUtil interface {
 // WebsocketUtil struct provides functionality around creating and maintaining websockets.
 type WebsocketUtil struct {
 	dialer *websocket.Dialer
-	log    log.T
 }
 
 // NewWebsocketUtil is the factory function for websocketutil.
-func NewWebsocketUtil(logger log.T, dialerInput *websocket.Dialer) *WebsocketUtil {
+func NewWebsocketUtil(dialerInput *websocket.Dialer) *WebsocketUtil {
 
 	var websocketUtil *WebsocketUtil
 
 	if dialerInput == nil {
 		websocketUtil = &WebsocketUtil{
 			dialer: websocket.DefaultDialer,
-			log:    logger,
 		}
 	} else {
 		websocketUtil = &WebsocketUtil{
 			dialer: dialerInput,
-			log:    logger,
 		}
 	}
 
@@ -56,15 +53,15 @@ func NewWebsocketUtil(logger log.T, dialerInput *websocket.Dialer) *WebsocketUti
 // OpenConnection opens a websocket connection provided an input url.
 func (u *WebsocketUtil) OpenConnection(url string) (*websocket.Conn, error) {
 
-	u.log.Infof("Opening websocket connection to: ", url)
+	log.Infof("Opening websocket connection to: ", url)
 
 	conn, _, err := u.dialer.Dial(url, nil)
 	if err != nil {
-		u.log.Errorf("Failed to dial websocket: %s", err.Error())
+		log.Errorf("Failed to dial websocket: %s", err.Error())
 		return nil, err
 	}
 
-	u.log.Infof("Successfully opened websocket connection to: ", url)
+	log.Infof("Successfully opened websocket connection to: ", url)
 
 	return conn, err
 }
@@ -76,15 +73,15 @@ func (u *WebsocketUtil) CloseConnection(ws *websocket.Conn) error {
 		return errors.New("websocket conn object is nil")
 	}
 
-	u.log.Debugf("Closing websocket connection to:", ws.RemoteAddr().String())
+	log.Debugf("Closing websocket connection to:", ws.RemoteAddr().String())
 
 	err := ws.Close()
 	if err != nil {
-		u.log.Errorf("Failed to close websocket: %s", err.Error())
+		log.Errorf("Failed to close websocket: %s", err.Error())
 		return err
 	}
 
-	u.log.Debugf("Successfully closed websocket connection to:", ws.RemoteAddr().String())
+	log.Debugf("Successfully closed websocket connection to:", ws.RemoteAddr().String())
 
 	return nil
 }

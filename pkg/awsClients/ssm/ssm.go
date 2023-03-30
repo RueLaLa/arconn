@@ -15,6 +15,7 @@ import (
 	_ "github.com/ruelala/arconn/pkg/session-manager-plugin/sessionmanagerplugin/session/portsession"
 	_ "github.com/ruelala/arconn/pkg/session-manager-plugin/sessionmanagerplugin/session/shellsession"
 	"github.com/ruelala/arconn/pkg/utils"
+	log "github.com/sirupsen/logrus"
 )
 
 func Lookup(args utils.Args, target utils.Target) utils.Target {
@@ -153,5 +154,7 @@ func Connect(args utils.Args, target utils.Target) {
 	}
 
 	connect_args := []string{"session-manager-plugin", target.SessionInfo, "us-east-1", "StartSession", args.Profile, string(target_json), "https://ssm.us-east-1.amazonaws.com"}
+	log.SetLevel(log.InfoLevel)
 	session.ValidateInputAndStartSession(connect_args, os.Stdout)
+	os.Exit(0)
 }

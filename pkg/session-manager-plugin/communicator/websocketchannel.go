@@ -21,17 +21,17 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/config"
-	"github.com/ruelala/arconn/pkg/session-manager-plugin/log"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/websocketutil"
+	log "github.com/sirupsen/logrus"
 )
 
 // IWebSocketChannel is the interface for DataChannel.
 type IWebSocketChannel interface {
-	Initialize(log log.T, channelUrl string, channelToken string)
-	Open(log log.T) error
-	Close(log log.T) error
-	SendMessage(log log.T, input []byte, inputType int) error
-	StartPings(log log.T, pingInterval time.Duration)
+	Initialize(channelUrl string, channelToken string)
+	Open() error
+	Close() error
+	SendMessage(input []byte, inputType int) error
+	StartPings(pingInterval time.Duration)
 	GetChannelToken() string
 	GetStreamUrl() string
 	SetChannelToken(string)
@@ -77,13 +77,13 @@ func (webSocketChannel *WebSocketChannel) SetOnMessage(onMessageHandler func([]b
 }
 
 // Initialize initializes websocket channel fields
-func (webSocketChannel *WebSocketChannel) Initialize(log log.T, channelUrl string, channelToken string) {
+func (webSocketChannel *WebSocketChannel) Initialize(channelUrl string, channelToken string) {
 	webSocketChannel.ChannelToken = channelToken
 	webSocketChannel.Url = channelUrl
 }
 
 // StartPings starts the pinging process to keep the websocket channel alive.
-func (webSocketChannel *WebSocketChannel) StartPings(log log.T, pingInterval time.Duration) {
+func (webSocketChannel *WebSocketChannel) StartPings(pingInterval time.Duration) {
 
 	go func() {
 		for {
@@ -106,7 +106,7 @@ func (webSocketChannel *WebSocketChannel) StartPings(log log.T, pingInterval tim
 
 // SendMessage sends a byte message through the websocket connection.
 // Examples of message type are websocket.TextMessage or websocket.Binary
-func (webSocketChannel *WebSocketChannel) SendMessage(log log.T, input []byte, inputType int) error {
+func (webSocketChannel *WebSocketChannel) SendMessage(input []byte, inputType int) error {
 	if webSocketChannel.IsOpen == false {
 		return errors.New("Can't send message: Connection is closed.")
 	}
@@ -122,13 +122,13 @@ func (webSocketChannel *WebSocketChannel) SendMessage(log log.T, input []byte, i
 }
 
 // Close closes the corresponding connection.
-func (webSocketChannel *WebSocketChannel) Close(log log.T) error {
+func (webSocketChannel *WebSocketChannel) Close() error {
 
 	log.Info("Closing websocket channel connection to: " + webSocketChannel.Url)
 	if webSocketChannel.IsOpen == true {
 		// Send signal to stop receiving message
 		webSocketChannel.IsOpen = false
-		return websocketutil.NewWebsocketUtil(log, nil).CloseConnection(webSocketChannel.Connection)
+		return websocketutil.NewWebsocketUtil(nil).CloseConnection(webSocketChannel.Connection)
 	}
 
 	log.Info("Websocket channel connection to: " + webSocketChannel.Url + " is already Closed!")
@@ -136,17 +136,17 @@ func (webSocketChannel *WebSocketChannel) Close(log log.T) error {
 }
 
 // Open upgrades the http connection to a websocket connection.
-func (webSocketChannel *WebSocketChannel) Open(log log.T) error {
+func (webSocketChannel *WebSocketChannel) Open() error {
 	// initialize the write mutex
 	webSocketChannel.writeLock = &sync.Mutex{}
 
-	ws, err := websocketutil.NewWebsocketUtil(log, nil).OpenConnection(webSocketChannel.Url)
+	ws, err := websocketutil.NewWebsocketUtil(nil).OpenConnection(webSocketChannel.Url)
 	if err != nil {
 		return err
 	}
 	webSocketChannel.Connection = ws
 	webSocketChannel.IsOpen = true
-	webSocketChannel.StartPings(log, config.PingTimeInterval)
+	webSocketChannel.StartPings(config.PingTimeInterval)
 
 	// spin up a different routine to listen to the incoming traffic
 	go func() {
