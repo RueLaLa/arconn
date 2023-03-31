@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
+	"os"
 
 	"github.com/ruelala/arconn/pkg/awsClients/ec2"
 	"github.com/ruelala/arconn/pkg/awsClients/ecs"
