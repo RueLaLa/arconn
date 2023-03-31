@@ -62,6 +62,7 @@ type IDataChannel interface {
 	RegisterOutputStreamHandler(handler OutputStreamDataMessageHandler, isSessionSpecificHandler bool)
 	DeregisterOutputStreamHandler(handler OutputStreamDataMessageHandler)
 	IsSessionTypeSet() chan bool
+	EndSession() error
 	IsSessionEnded() bool
 	IsStreamMessageResendTimeout() chan bool
 	GetSessionType() string
@@ -791,7 +792,7 @@ func (dataChannel *DataChannel) HandleChannelClosedMessage(log log.T, stopHandle
 	} else {
 		fmt.Fprintf(os.Stdout, "\n\nSessionId: %s : %s\n\n", sessionId, channelClosedMessage.Output)
 	}
-	dataChannel.isSessionEnded = true
+	dataChannel.EndSession()
 	dataChannel.Close(log)
 
 	stopHandler()
@@ -899,6 +900,12 @@ func (dataChannel *DataChannel) IsSessionTypeSet() chan bool {
 // IsSessionEnded check if session has ended
 func (dataChannel *DataChannel) IsSessionEnded() bool {
 	return dataChannel.isSessionEnded
+}
+
+// IsSessionEnded check if session has ended
+func (dataChannel *DataChannel) EndSession() error {
+	dataChannel.isSessionEnded = true
+	return nil
 }
 
 // IsStreamMessageResendTimeout checks if resending a streaming message reaches timeout
