@@ -203,6 +203,9 @@ func ValidateInputAndStartSession(args []string, out io.Writer) {
 	}
 
 	if err = startSession(&session, log); err != nil {
+		if session.DataChannel.IsSessionEnded() == true {
+			return
+		}
 		log.Errorf("Cannot perform start session: %v", err)
 		fmt.Fprintf(out, "Cannot perform start session: %v\n", err)
 		return
