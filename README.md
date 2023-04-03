@@ -29,12 +29,12 @@ arconn -p myProfile -t i-12345678
 
 Port Forwarding to an ECS container:
 ```
-arconn -p myProfile -t myContainer -p 8080:8080
+arconn -p myProfile -t myContainer -P 8080:8080
 ```
 
 Port Forwarding to a remote host through an EC2 host:
 ```
-arconn -p myProfile -t 10.0.1.66 -p 3306:3306 -r myDatabase.domain
+arconn -p myProfile -t 10.0.1.66 -P 3306:3306 -r myDatabase.domain
 ```
 
 ## Types & Searching
