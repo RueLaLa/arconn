@@ -37,6 +37,10 @@ func GetSessionName() string {
 	return fmt.Sprintf("%s-%s-%s", binary, version, cleanName)
 }
 
+func BinaryName() string {
+	return binary
+}
+
 func ParseFlags() Args {
 	args := Args{
 		Profile: os.Getenv("AWS_PROFILE"),
