@@ -2,10 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"net/http"
-	_ "net/http/pprof"
-	"os"
 
 	"github.com/ruelala/arconn/pkg/awsClients/ec2"
 	"github.com/ruelala/arconn/pkg/awsClients/ecs"
@@ -14,10 +10,6 @@ import (
 )
 
 func main() {
-	go func() {
-		log.Println(http.ListenAndServe("0.0.0.0:6060", nil))
-	}()
-
 	args := utils.ParseFlags()
 	target := utils.Target{}
 
@@ -55,8 +47,7 @@ func main() {
 	}
 
 	if !target.Resolved {
-		fmt.Println(fmt.Sprintf("target %s couldnt be found in ECS, EC2, or SSM", args.Target))
-		os.Exit(1)
+		utils.Panic(fmt.Errorf("target %s couldnt be found in ECS, EC2, or SSM", args.Target))
 	}
 
 	fmt.Println(fmt.Sprintf("connecting to %s", target.ResolvedName))
