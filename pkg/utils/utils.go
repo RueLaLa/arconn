@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/user"
 	"runtime"
+	"strings"
 
 	"github.com/integrii/flaggy"
 )
@@ -31,7 +32,8 @@ func GetSessionName() string {
 	if err != nil {
 		return fmt.Sprintf("arconn-%s-unknown-user", version)
 	}
-	return fmt.Sprintf("arconn-%s-%s", version, user.Username)
+	cleanName := strings.Replace(user.Username, "\\", "-", -1)
+	return fmt.Sprintf("arconn-%s-%s", version, cleanName)
 }
 
 func ParseFlags() Args {
