@@ -107,8 +107,7 @@ func lookup_instance_in_ssm(client *ssm.Client, target string) []types.InstanceI
 	utils.Panic(err)
 
 	if len(resp.InstanceInformationList) == 0 {
-		fmt.Println(fmt.Sprintf("%s is not currently registered with SSM, make sure agent is configured and online", target))
-		os.Exit(1)
+		utils.Panic(fmt.Errorf("%s is not currently registered with SSM, make sure agent is configured and online", target))
 	}
 	return resp.InstanceInformationList
 }
@@ -117,8 +116,7 @@ func instance_online(resp []types.InstanceInformation, target string) bool {
 	if resp[0].PingStatus == types.PingStatusOnline {
 		return true
 	} else {
-		fmt.Println(fmt.Sprintf("%s is registered with SSM, but the agent is offline", target))
-		os.Exit(1)
+		utils.Panic(fmt.Errorf("%s is registered with SSM, but the agent is offline", target))
 		return false
 	}
 }
