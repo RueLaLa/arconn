@@ -140,6 +140,9 @@ func describe_tasks(client *ecs.Client, cluster string, tasks []string, args uti
 			if len(task.Containers) == 0 {
 				continue
 			}
+			if *task.LastStatus != "RUNNING" {
+				continue
+			}
 			if (ttype == "ECS_ID") && (strings.Split(args.Target, "_")[2] != *task.Containers[0].RuntimeId) {
 				continue
 			} else if (ttype == "NAME") && (*task.Containers[0].Name != args.Target) {
