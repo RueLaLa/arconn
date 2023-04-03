@@ -64,7 +64,6 @@ func (s *ShellSession) handleKeyboardInput(log log.T) (err error) {
 		key       keyboard.Key //special keys like arrows and function keys
 	)
 
-
 	charCH := make(chan rune)
 	keyCH := make(chan keyboard.Key)
 	go func(charCH chan rune, keyCH chan keyboard.Key) {
