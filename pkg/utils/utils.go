@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/user"
 	"runtime"
+	"strings"
 
 	"github.com/integrii/flaggy"
 )
@@ -13,6 +14,7 @@ import (
 var version string
 var commit string
 var date string
+var binary string
 
 func print_version() string {
 	go_version := runtime.Version()
@@ -29,9 +31,14 @@ func Panic(err error) {
 func GetSessionName() string {
 	user, err := user.Current()
 	if err != nil {
-		return fmt.Sprintf("arconn-%s-unknown-user", version)
+		return fmt.Sprintf("%s-%s-unknown-user", binary, version)
 	}
-	return fmt.Sprintf("arconn-%s-%s", version, user.Username)
+	cleanName := strings.Replace(user.Username, "\\", "-", -1)
+	return fmt.Sprintf("%s-%s-%s", binary, version, cleanName)
+}
+
+func BinaryName() string {
+	return binary
 }
 
 func ParseFlags() Args {

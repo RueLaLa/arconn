@@ -107,8 +107,7 @@ func lookup_instance_in_ssm(client *ssm.Client, target string) []types.InstanceI
 	utils.Panic(err)
 
 	if len(resp.InstanceInformationList) == 0 {
-		fmt.Println(fmt.Sprintf("%s is not currently registered with SSM, make sure agent is configured and online", target))
-		os.Exit(1)
+		utils.Panic(fmt.Errorf("%s is not currently registered with SSM, make sure agent is configured and online", target))
 	}
 	return resp.InstanceInformationList
 }
@@ -117,8 +116,7 @@ func instance_online(resp []types.InstanceInformation, target string) bool {
 	if resp[0].PingStatus == types.PingStatusOnline {
 		return true
 	} else {
-		fmt.Println(fmt.Sprintf("%s is registered with SSM, but the agent is offline", target))
-		os.Exit(1)
+		utils.Panic(fmt.Errorf("%s is registered with SSM, but the agent is offline", target))
 		return false
 	}
 }
@@ -127,10 +125,10 @@ func Connect(args utils.Args, target utils.Target) {
 	client := awsClients.SSMClient(args.Profile)
 
 	input := &ssm.StartSessionInput{}
-	input.Reason = aws.String("arconn session")
+	input.Reason = aws.String(fmt.Sprintf("%s session", utils.BinaryName()))
 	input.Target = &target.ResolvedName
 	if len(target.PortForwarding) > 0 {
-		input.Reason = aws.String("arconn port forward session")
+		input.Reason = aws.String(fmt.Sprintf("%s port forward session", utils.BinaryName()))
 		type param map[string][]string
 		p := make(param)
 		p["portNumber"] = []string{target.PortForwarding[1]}
