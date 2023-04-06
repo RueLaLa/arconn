@@ -44,7 +44,7 @@ Target type | Sessions | Custom commands | Port forwarding | Port forwarding to 
 :---------- | :------- | :-------------- | :-------------- | :------------------------------ | :----------------------
 EC2 | :white_check_mark: | :x: | :white_check_mark: | :white_check_mark: | <ul><li>Instance ID</li><li>IP Address</li><li>Name</li></ul>
 ECS | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | <ul><li>Name</li></ul>
-SSM Managed Instance | :white_check_mark: | :question: | :question: | :question: | <ul><li>Managed Instance Id</li><li>Name</li></ul>
+SSM Managed Instance | :white_check_mark: | :x: | :white_check_mark: | :white_check_mark: | <ul><li>Managed Instance Id</li><li>Name</li></ul>
 
 ## Permissions
 `arconn` uses the below permissions to some extent across the application:
