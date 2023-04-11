@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -143,9 +144,10 @@ func describe_tasks(client *ecs.Client, cluster string, tasks []string, args uti
 			if *task.LastStatus != "RUNNING" {
 				continue
 			}
+			r, _ := regexp.Compile(fmt.Sprintf(".*%s.*", args.Target))
 			if (ttype == "ECS_ID") && (strings.Split(args.Target, "_")[2] != *task.Containers[0].RuntimeId) {
 				continue
-			} else if (ttype == "NAME") && (*task.Containers[0].Name != args.Target) {
+			} else if (ttype == "NAME") && !(r.Match([]byte(*task.Containers[0].Name))) {
 				continue
 			}
 			if task.EnableExecuteCommand == true {
