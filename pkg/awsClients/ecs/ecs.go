@@ -163,9 +163,9 @@ func filter_tasks(tasks []types.Task, args utils.Args, ttype string) []FTask {
 
 func prompt_for_choice(tasks []FTask) FTask {
 	templates := &promptui.SelectTemplates{
-		Active:   "\U00002713 {{ .TaskName | green }} {{ .TaskArn | blue }}",
-		Inactive: "  {{ .TaskName | green }} {{ .TaskArn | blue }}",
-		Selected: "\U00002713 {{ .TaskName | green }} {{ .TaskArn | blue }}",
+		Active:   "\U00002713 {{ .TaskName | green }} {{ .ClusterArn.Resource | blue }} {{ .TaskArn.Resource | blue }}",
+		Inactive: "  {{ .TaskName | green }} {{ .ClusterArn.Resource | blue }} {{ .TaskArn.Resource | blue }}",
+		Selected: "\U00002713 {{ .TaskName | green }} {{ .ClusterArn.Resource | blue }} {{ .TaskArn.Resource | blue }}",
 	}
 
 	prompt := promptui.Select{
