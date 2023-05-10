@@ -60,10 +60,10 @@ func filter_matches(instances []types.InstanceInformation, target string) string
 	}
 
 	if len(matches) == 0 {
-		fmt.Println(fmt.Sprintf("no matching SSM instances found for %s", target))
+		fmt.Printf("no matching SSM instances found for %s\n", target)
 		return ""
 	} else if len(matches) == 1 {
-		fmt.Println(fmt.Sprintf("found %s currently running in SSM", matches[0].ID))
+		fmt.Printf("found %s currently running in SSM\n", matches[0].ID)
 		return matches[0].ID
 	} else {
 		instance_id := prompt_for_choice(matches)
