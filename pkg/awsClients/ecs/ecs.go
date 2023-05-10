@@ -77,9 +77,7 @@ func list_clusters(client *ecs.Client) []string {
 	for paginator.HasMorePages() {
 		resp, err := paginator.NextPage(context.TODO())
 		utils.Panic(err)
-		for _, arn := range resp.ClusterArns {
-			clusters = append(clusters, arn)
-		}
+		clusters = append(clusters, resp.ClusterArns...)
 	}
 	return clusters
 }
@@ -123,9 +121,8 @@ func List_tasks(client *ecs.Client, clusters []string) []types.Task {
 				},
 			)
 			utils.Panic(err)
-			for _, task := range lresp.Tasks {
-				all_tasks = append(all_tasks, task)
-			}
+
+			all_tasks = append(all_tasks, lresp.Tasks...)
 		}
 	}
 	return all_tasks
@@ -146,7 +143,7 @@ func filter_tasks(tasks []types.Task, args utils.Args, ttype string) []FTask {
 		} else if (ttype == "NAME") && !(r.Match([]byte(*task.Containers[0].Name))) {
 			continue
 		}
-		if task.EnableExecuteCommand == true {
+		if task.EnableExecuteCommand {
 			carn, _ := arn.Parse(*task.ClusterArn)
 			tarn, _ := arn.Parse(*task.TaskArn)
 			filtered_tasks = append(filtered_tasks,
