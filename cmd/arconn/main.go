@@ -50,6 +50,6 @@ func main() {
 		utils.Panic(fmt.Errorf("target %s couldnt be found in ECS, EC2, or SSM", args.Target))
 	}
 
-	fmt.Printf("connecting to %s", target.ResolvedName)
+	fmt.Printf("connecting to %s\n", target.ResolvedName)
 	ssm.Connect(args, target)
 }
