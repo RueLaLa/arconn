@@ -1,7 +1,7 @@
 package utils
 
 type Args struct {
-	Profile, Target, Command, PortForward, RemoteHost string
+	Profile, Target, Command, PortForward, RemoteHost, Vault string
 }
 
 type Target struct {
