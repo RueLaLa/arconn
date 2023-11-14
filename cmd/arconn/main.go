@@ -22,7 +22,7 @@ func main() {
 	}
 
 	target.Type = utils.TargetType(args.Target)
-	fmt.Println(fmt.Sprintf("computed target type: %s", target.Type))
+	fmt.Printf("computed target type: %s\n", target.Type)
 
 	switch target.Type {
 	case "EC2_ID", "SSM_MI_ID":
@@ -34,7 +34,7 @@ func main() {
 	default:
 		target = ecs.Lookup(args, target)
 
-		if target.Resolved != true {
+		if !target.Resolved {
 			target = ec2.Lookup(args, target)
 		}
 	}
@@ -50,6 +50,6 @@ func main() {
 		utils.Panic(fmt.Errorf("target %s couldnt be found in ECS, EC2, or SSM", args.Target))
 	}
 
-	fmt.Println(fmt.Sprintf("connecting to %s", target.ResolvedName))
+	fmt.Printf("connecting to %s\n", target.ResolvedName)
 	ssm.Connect(args, target)
 }
