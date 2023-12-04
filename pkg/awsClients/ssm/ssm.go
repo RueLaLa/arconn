@@ -18,7 +18,7 @@ import (
 )
 
 func Lookup(args utils.Args, target utils.Target) utils.Target {
-	client := awsClients.SSMClient(args.Profile)
+	client := ssm.NewFromConfig(awsClients.AwsConfig(args))
 	ssm_target := ""
 	if target.Resolved {
 		ssm_target = target.ResolvedName
@@ -122,8 +122,8 @@ func instance_online(resp []types.InstanceInformation, target string) bool {
 }
 
 func Connect(args utils.Args, target utils.Target) {
-	client := awsClients.SSMClient(args.Profile)
-	cr := awsClients.CurrentRegion(args.Profile)
+	config := awsClients.AwsConfig(args)
+	client := ssm.NewFromConfig(config)
 
 	input := &ssm.StartSessionInput{}
 	input.Reason = aws.String(fmt.Sprintf("%s session", utils.BinaryName()))
@@ -154,11 +154,11 @@ func Connect(args utils.Args, target utils.Target) {
 	connect_args := []string{
 		"session-manager-plugin",
 		target.SessionInfo,
-		cr,
+		config.Region,
 		"StartSession",
 		args.Profile,
 		string(target_json),
-		fmt.Sprintf("https://ssm.%s.amazonaws.com", cr),
+		fmt.Sprintf("https://ssm.%s.amazonaws.com", config.Region),
 	}
 	session.ValidateInputAndStartSession(connect_args, os.Stdout)
 }

@@ -14,7 +14,7 @@ import (
 
 func Lookup(args utils.Args, target utils.Target) utils.Target {
 	fmt.Println("searching EC2 for matching instances")
-	client := awsClients.EC2Client(args.Profile)
+	client := ec2.NewFromConfig(awsClients.AwsConfig(args))
 
 	filter := ""
 	switch target.Type {
