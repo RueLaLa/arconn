@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/manifoldco/promptui"
-	"github.com/ruelala/arconn/pkg/awsClients"
+	"github.com/ruelala/arconn/pkg/awsClients/AwsConfig"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/sessionmanagerplugin/session"
 	_ "github.com/ruelala/arconn/pkg/session-manager-plugin/sessionmanagerplugin/session/portsession"
 	_ "github.com/ruelala/arconn/pkg/session-manager-plugin/sessionmanagerplugin/session/shellsession"
@@ -18,7 +18,7 @@ import (
 )
 
 func Lookup(args utils.Args, target utils.Target) utils.Target {
-	client := awsClients.SSMClient(args.Profile)
+	client := ssm.NewFromConfig(AwsConfig.BuildConfig(args))
 	ssm_target := ""
 	if target.Resolved {
 		ssm_target = target.ResolvedName
@@ -122,7 +122,8 @@ func instance_online(resp []types.InstanceInformation, target string) bool {
 }
 
 func Connect(args utils.Args, target utils.Target) {
-	client := awsClients.SSMClient(args.Profile)
+	config := AwsConfig.BuildConfig(args)
+	client := ssm.NewFromConfig(config)
 
 	input := &ssm.StartSessionInput{}
 	input.Reason = aws.String(fmt.Sprintf("%s session", utils.BinaryName()))
@@ -150,6 +151,14 @@ func Connect(args utils.Args, target utils.Target) {
 		target.SessionInfo = string(session_raw)
 	}
 
-	connect_args := []string{"session-manager-plugin", target.SessionInfo, "us-east-1", "StartSession", args.Profile, string(target_json), "https://ssm.us-east-1.amazonaws.com"}
+	connect_args := []string{
+		"session-manager-plugin",
+		target.SessionInfo,
+		config.Region,
+		"StartSession",
+		args.Profile,
+		string(target_json),
+		fmt.Sprintf("https://ssm.%s.amazonaws.com", config.Region),
+	}
 	session.ValidateInputAndStartSession(connect_args, os.Stdout)
 }

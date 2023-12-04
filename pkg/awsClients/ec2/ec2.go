@@ -8,13 +8,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/manifoldco/promptui"
-	"github.com/ruelala/arconn/pkg/awsClients"
+	"github.com/ruelala/arconn/pkg/awsClients/AwsConfig"
 	"github.com/ruelala/arconn/pkg/utils"
 )
 
 func Lookup(args utils.Args, target utils.Target) utils.Target {
 	fmt.Println("searching EC2 for matching instances")
-	client := awsClients.EC2Client(args.Profile)
+	client := ec2.NewFromConfig(AwsConfig.BuildConfig(args))
 
 	filter := ""
 	switch target.Type {
