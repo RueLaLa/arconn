@@ -18,7 +18,7 @@ import (
 
 func Lookup(args utils.Args, target utils.Target) utils.Target {
 	fmt.Println("searching ECS for matching tasks")
-	client := awsClients.ECSClient(args.Profile)
+	client := ecs.NewFromConfig(awsClients.AwsConfig(args))
 	clusters := list_clusters(client)
 	tasks := find_matching_tasks(client, clusters, args, target.Type)
 
