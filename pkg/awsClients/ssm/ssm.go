@@ -123,6 +123,7 @@ func instance_online(resp []types.InstanceInformation, target string) bool {
 
 func Connect(args utils.Args, target utils.Target) {
 	client := awsClients.SSMClient(args.Profile)
+	cr := awsClients.CurrentRegion(args.Profile)
 
 	input := &ssm.StartSessionInput{}
 	input.Reason = aws.String(fmt.Sprintf("%s session", utils.BinaryName()))
@@ -150,6 +151,14 @@ func Connect(args utils.Args, target utils.Target) {
 		target.SessionInfo = string(session_raw)
 	}
 
-	connect_args := []string{"session-manager-plugin", target.SessionInfo, "us-east-1", "StartSession", args.Profile, string(target_json), "https://ssm.us-east-1.amazonaws.com"}
+	connect_args := []string{
+		"session-manager-plugin",
+		target.SessionInfo,
+		cr,
+		"StartSession",
+		args.Profile,
+		string(target_json),
+		fmt.Sprintf("https://ssm.%s.amazonaws.com", cr),
+	}
 	session.ValidateInputAndStartSession(connect_args, os.Stdout)
 }
