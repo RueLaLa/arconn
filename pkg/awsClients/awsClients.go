@@ -2,7 +2,6 @@ package awsClients
 
 import (
 	"context"
-	"log"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -14,41 +13,41 @@ import (
 )
 
 func AwsConfig(profile string) aws.Config {
+	scp, err := config.LoadSharedConfigProfile(context.TODO(), profile)
+	utils.Panic(err)
+	if scp.Region == "" {
+		scp.Region = "us-east-1"
+	}
+
 	cfg, err := config.LoadDefaultConfig(
 		context.TODO(),
 		config.WithSharedConfigProfile(profile),
-		config.WithRegion("us-east-1"),
+		config.WithDefaultRegion(scp.Region),
 		config.WithAssumeRoleCredentialOptions(func(options *stscreds.AssumeRoleOptions) {
 			options.RoleSessionName = utils.GetSessionName()
 		}),
 	)
-	if err != nil {
-		log.Fatal(err)
-	}
+	utils.Panic(err)
 
 	return cfg
 }
 
 func ECSClient(profile string) *ecs.Client {
-	config := AwsConfig(profile)
-	client := ecs.NewFromConfig(config, func(o *ecs.Options) {
-		o.Region = "us-east-1"
-	})
+	client := ecs.NewFromConfig(AwsConfig(profile))
 	return client
 }
 
 func EC2Client(profile string) *ec2.Client {
-	config := AwsConfig(profile)
-	client := ec2.NewFromConfig(config, func(o *ec2.Options) {
-		o.Region = "us-east-1"
-	})
+	client := ec2.NewFromConfig(AwsConfig(profile))
 	return client
 }
 
 func SSMClient(profile string) *ssm.Client {
-	config := AwsConfig(profile)
-	client := ssm.NewFromConfig(config, func(o *ssm.Options) {
-		o.Region = "us-east-1"
-	})
+	client := ssm.NewFromConfig(AwsConfig(profile))
 	return client
+}
+
+func CurrentRegion(profile string) string {
+	cfg := AwsConfig(profile)
+	return cfg.Region
 }
