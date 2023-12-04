@@ -23,7 +23,7 @@ func print_version() string {
 
 func Panic(err error) {
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 }
@@ -44,7 +44,7 @@ func BinaryName() string {
 func ParseFlags() Args {
 	args := Args{
 		Profile: os.Getenv("AWS_PROFILE"),
-		Vault: os.Getenv("AWS_VAULT"),
+		Vault:   os.Getenv("AWS_VAULT"),
 	}
 
 	flaggy.String(&args.Profile, "p", "profile", "aws profile to use (defaults to value of AWS_PROFILE env var)")
