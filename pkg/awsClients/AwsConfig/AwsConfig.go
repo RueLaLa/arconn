@@ -1,4 +1,4 @@
-package awsClients
+package AwsConfig
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/ruelala/arconn/pkg/utils"
 )
 
-func AwsConfig(args utils.Args) aws.Config {
+func BuildConfig(args utils.Args) aws.Config {
 	if args.Vault != "" {
 		cfg, err := config.LoadDefaultConfig(context.TODO())
 		utils.Panic(err)

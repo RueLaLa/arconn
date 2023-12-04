@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/manifoldco/promptui"
-	"github.com/ruelala/arconn/pkg/awsClients"
+	"github.com/ruelala/arconn/pkg/awsClients/AwsConfig"
 	"github.com/ruelala/arconn/pkg/session-manager-plugin/sessionmanagerplugin/session"
 	_ "github.com/ruelala/arconn/pkg/session-manager-plugin/sessionmanagerplugin/session/portsession"
 	_ "github.com/ruelala/arconn/pkg/session-manager-plugin/sessionmanagerplugin/session/shellsession"
@@ -18,7 +18,7 @@ import (
 )
 
 func Lookup(args utils.Args, target utils.Target) utils.Target {
-	client := ssm.NewFromConfig(awsClients.AwsConfig(args))
+	client := ssm.NewFromConfig(AwsConfig.BuildConfig(args))
 	ssm_target := ""
 	if target.Resolved {
 		ssm_target = target.ResolvedName
@@ -122,7 +122,7 @@ func instance_online(resp []types.InstanceInformation, target string) bool {
 }
 
 func Connect(args utils.Args, target utils.Target) {
-	config := awsClients.AwsConfig(args)
+	config := AwsConfig.BuildConfig(args)
 	client := ssm.NewFromConfig(config)
 
 	input := &ssm.StartSessionInput{}
