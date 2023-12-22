@@ -11,6 +11,7 @@ import (
 
 func main() {
 	args := utils.ParseFlags()
+	utils.IsLatest()
 	target := utils.Target{}
 
 	if args.PortForward != "" {
