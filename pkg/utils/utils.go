@@ -53,10 +53,9 @@ func Panic(err error) {
 func UserName() string {
 	user, err := user.Current()
 	if err != nil {
-		return fmt.Sprintf("%s-%s-unknown-user", binary, version)
+		return "unknown user"
 	}
-	cleanName := strings.Replace(user.Username, "\\", "-", -1)
-	return cleanName
+	return strings.Replace(user.Username, "\\", "-", -1)
 }
 
 func BinaryName() string {
