@@ -126,10 +126,10 @@ func Connect(args utils.Args, target utils.Target) {
 	client := ssm.NewFromConfig(config)
 
 	input := &ssm.StartSessionInput{}
-	input.Reason = aws.String(fmt.Sprintf("%s session", utils.BinaryName()))
+	input.Reason = aws.String(fmt.Sprintf("%s %s session", utils.BinaryName(), utils.BinaryVersion()))
 	input.Target = &target.ResolvedName
 	if len(target.PortForwarding) > 0 {
-		input.Reason = aws.String(fmt.Sprintf("%s port forward session", utils.BinaryName()))
+		input.Reason = aws.String(fmt.Sprintf("%s %s port forward session", utils.BinaryName(), utils.BinaryVersion()))
 		type param map[string][]string
 		p := make(param)
 		p["portNumber"] = []string{target.PortForwarding[1]}
