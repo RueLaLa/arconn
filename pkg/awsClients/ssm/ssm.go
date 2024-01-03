@@ -9,11 +9,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
+	"github.com/aws/session-manager-plugin/src/sessionmanagerplugin/session"
+	_ "github.com/aws/session-manager-plugin/src/sessionmanagerplugin/session/portsession"
+	_ "github.com/aws/session-manager-plugin/src/sessionmanagerplugin/session/shellsession"
 	"github.com/manifoldco/promptui"
 	"github.com/ruelala/arconn/pkg/awsClients/AwsConfig"
-	"github.com/ruelala/arconn/pkg/session-manager-plugin/sessionmanagerplugin/session"
-	_ "github.com/ruelala/arconn/pkg/session-manager-plugin/sessionmanagerplugin/session/portsession"
-	_ "github.com/ruelala/arconn/pkg/session-manager-plugin/sessionmanagerplugin/session/shellsession"
 	"github.com/ruelala/arconn/pkg/utils"
 )
 
