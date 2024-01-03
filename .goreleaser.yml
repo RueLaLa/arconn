@@ -11,7 +11,7 @@ builds:
       - -s -w -X github.com/ruelala/arconn/pkg/utils.binary=arconn
       - -s -w -X github.com/ruelala/arconn/pkg/utils.commit={{.Commit}}
       - -s -w -X github.com/ruelala/arconn/pkg/utils.date={{.Date}}
-      - -s -w -X github.com/ruelala/arconn/pkg/utils.version={{.Version}}
+      - -s -w -X github.com/ruelala/arconn/pkg/utils.version=v{{.Version}}
 
 changelog:
   sort: desc
@@ -25,4 +25,4 @@ changelog:
 archives:
   - id: default
     format: zip
-    name_template: "{{.ProjectName}}-{{.Version}}-{{.Os}}-{{.Arch}}"
+    name_template: "{{.ProjectName}}-v{{.Version}}-{{.Os}}-{{.Arch}}"

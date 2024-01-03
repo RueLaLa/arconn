@@ -10,6 +10,7 @@ import (
 )
 
 func main() {
+	utils.IsLatest()
 	args := utils.ParseFlags()
 	target := utils.Target{}
 
