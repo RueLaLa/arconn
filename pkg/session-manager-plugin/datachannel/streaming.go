@@ -856,7 +856,7 @@ func (dataChannel *DataChannel) CalculateRetransmissionTimeout(log log.T, stream
 func (dataChannel *DataChannel) ProcessKMSEncryptionHandshakeAction(log log.T, actionParams json.RawMessage) (err error) {
 
 	if dataChannel.IsAwsCliUpgradeNeeded {
-		return errors.New("Installed version of CLI does not support Session Manager encryption feature. Please upgrade to the latest version of your CLI (e.g., AWS CLI).")
+		return errors.New("installed version of CLI does not support Session Manager encryption feature. Please upgrade to the latest version of your CLI (e.g., AWS CLI)")
 	}
 	kmsEncRequest := message.KMSEncryptionRequest{}
 	json.Unmarshal(actionParams, &kmsEncRequest)
@@ -888,7 +888,7 @@ func (dataChannel *DataChannel) ProcessSessionTypeHandshakeAction(actionParams j
 		dataChannel.sessionProperties = sessTypeReq.Properties
 		return nil
 	default:
-		return errors.New(fmt.Sprintf("Unknown session type %s", sessTypeReq.SessionType))
+		return fmt.Errorf("Unknown session type %s", sessTypeReq.SessionType)
 	}
 }
 
