@@ -11,6 +11,7 @@ import (
 
 	"github.com/buger/jsonparser"
 	"github.com/integrii/flaggy"
+	"golang.org/x/mod/semver"
 )
 
 // these get passed in as ldflags by goreleaser
@@ -21,7 +22,7 @@ var binary string
 
 func IsLatest() {
 	var client http.Client
-	url := fmt.Sprintf("https://api.github.com/repos/RueLaLa/%s/releases/latest", BinaryName())
+	url := fmt.Sprintf("https://api.github.com/repos/RueLaLa/%s/releases/latest", binary)
 	resp, err := client.Get(url)
 	if err != nil {
 		return
@@ -37,9 +38,15 @@ func IsLatest() {
 	if err != nil {
 		return
 	}
-	fmt.Printf("v%s\n", version)
-	if latest != fmt.Sprintf("v%s", version) {
-		fmt.Printf("A new version of %s is available (%s), head to https://github.com/RueLaLa/%s/releases/latest to get the latest binary\n", binary, latest, binary)
+
+	// this function returns 0 for equality, 1 if left value is greater, and -1 if right value is greater
+	comparison := semver.Compare(latest, version)
+	html_url, err := jsonparser.GetString(bodyBytes, "html_url")
+	if err != nil {
+		return
+	}
+	if comparison == 1 {
+		fmt.Printf("A new version is available (%s), head to %s to get the latest binary\n", latest, html_url)
 	}
 }
 
