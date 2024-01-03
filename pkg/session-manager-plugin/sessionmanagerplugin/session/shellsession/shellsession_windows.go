@@ -86,7 +86,7 @@ func (s *ShellSession) handleKeyboardInput(log log.T) (err error) {
 
 	for {
 		select {
-		case <-time.After(50 * time.Millisecond):
+		case <-time.After(time.Second):
 			if s.Session.DataChannel.IsSessionEnded() == true {
 				s.Stop()
 				return
@@ -97,8 +97,6 @@ func (s *ShellSession) handleKeyboardInput(log log.T) (err error) {
 				log.Errorf("Failed to send UTF8 char: %v", err)
 				return
 			}
-			// sleep to limit the rate of transfer
-			time.Sleep(time.Millisecond)
 		case keyStr := <-keyCH:
 			keyBytes := []byte(string(keyStr))
 			if byteValue, ok := specialKeysInputMap[key]; ok {
@@ -108,8 +106,6 @@ func (s *ShellSession) handleKeyboardInput(log log.T) (err error) {
 				log.Errorf("Failed to send UTF8 char: %v", err)
 				return
 			}
-			// sleep to limit the rate of transfer
-			time.Sleep(time.Millisecond)
 		}
 	}
 	return
