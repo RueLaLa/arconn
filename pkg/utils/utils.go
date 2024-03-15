@@ -85,7 +85,7 @@ func ParseFlags() Args {
 	flaggy.String(&args.PortForward, "P", "port-forward", "port forward map (syntax 80 or 80:80 local:remote)")
 	flaggy.String(&args.RemoteHost, "r", "remote-host", "remote host to port forward to")
 
-	flaggy.SetVersion(fmt.Sprintf("arconn v%s built with %s on commit %s at %s", version, runtime.Version(), commit, date))
+	flaggy.SetVersion(fmt.Sprintf("arconn %s built with %s on commit %s at %s", version, runtime.Version(), commit, date))
 	flaggy.Parse()
 
 	if args.Target == "" {
