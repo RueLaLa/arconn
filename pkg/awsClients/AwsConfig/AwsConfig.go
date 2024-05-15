@@ -2,6 +2,7 @@ package AwsConfig
 
 import (
 	"context"
+	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/middleware"
@@ -20,7 +21,10 @@ func BuildConfig(args utils.Args) aws.Config {
 
 	scp, err := config.LoadSharedConfigProfile(context.TODO(), args.Profile)
 	utils.Panic(err)
-	if scp.Region == "" {
+	env_region, env_present := os.LookupEnv("AWS_REGION")
+	if env_present {
+		scp.Region = env_region
+	} else if scp.Region == "" {
 		scp.Region = "us-east-1"
 	}
 
