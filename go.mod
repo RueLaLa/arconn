@@ -47,4 +47,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/aws/session-manager-plugin => github.com/ruelala/session-manager-plugin v1.4.1
+replace github.com/aws/session-manager-plugin => github.com/ruelala/session-manager-plugin v1.5.0
