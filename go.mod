@@ -42,4 +42,4 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
-replace github.com/aws/session-manager-plugin => /home/nsilverman/work/session-manager-plugin
+replace github.com/aws/session-manager-plugin => github.com/ruelala/session-manager-plugin v1.5.0
