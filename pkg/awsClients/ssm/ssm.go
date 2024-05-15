@@ -151,14 +151,11 @@ func Connect(args utils.Args, target utils.Target) {
 		target.SessionInfo = string(session_raw)
 	}
 
-	connect_args := []string{
-		"session-manager-plugin",
+	session.ValidateInputAndStartSession(
 		target.SessionInfo,
-		config.Region,
-		"StartSession",
 		args.Profile,
-		string(target_json),
 		fmt.Sprintf("https://ssm.%s.amazonaws.com", config.Region),
-	}
-	session.ValidateInputAndStartSession(connect_args, os.Stdout)
+		string(target_json),
+		os.Stdout,
+	)
 }
