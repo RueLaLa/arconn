@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/aws/session-manager-plugin/pkg/log"
 	"github.com/ruelala/arconn/pkg/awsClients/ec2"
 	"github.com/ruelala/arconn/pkg/awsClients/ecs"
 	"github.com/ruelala/arconn/pkg/awsClients/ssm"
@@ -23,7 +24,7 @@ func main() {
 	}
 
 	target.Type = utils.TargetType(args.Target)
-	fmt.Printf("computed target type: %s\n", target.Type)
+	log.Alwaysf("computed target type: %s", target.Type)
 
 	switch target.Type {
 	case "EC2_ID", "SSM_MI_ID":
@@ -51,6 +52,6 @@ func main() {
 		utils.Panic(fmt.Errorf("target %s couldnt be found in ECS, EC2, or SSM", args.Target))
 	}
 
-	fmt.Printf("connecting to %s\n", target.ResolvedName)
+	log.Alwaysf("connecting to %s", target.ResolvedName)
 	ssm.Connect(args, target)
 }

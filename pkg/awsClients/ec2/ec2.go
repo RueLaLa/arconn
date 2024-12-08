@@ -7,13 +7,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	"github.com/aws/session-manager-plugin/pkg/log"
 	"github.com/manifoldco/promptui"
 	"github.com/ruelala/arconn/pkg/awsClients/AwsConfig"
 	"github.com/ruelala/arconn/pkg/utils"
 )
 
 func Lookup(args utils.Args, target utils.Target) utils.Target {
-	fmt.Println("searching EC2 for matching instances")
+	log.Always("searching EC2 for matching instances")
 	client := ec2.NewFromConfig(AwsConfig.BuildConfig(args))
 
 	filter := ""
@@ -73,10 +74,10 @@ func filter_matches(output *ec2.DescribeInstancesOutput, target string) string {
 	}
 
 	if len(matches) == 0 {
-		fmt.Printf("no matching EC2 instances found for %s\n", target)
+		log.Alwaysf("no matching EC2 instances found for %s", target)
 		return ""
 	} else if len(matches) == 1 {
-		fmt.Printf("found %s currently running in EC2\n", matches[0].ID)
+		log.Alwaysf("found %s currently running in EC2", matches[0].ID)
 		return matches[0].ID
 	} else {
 		instance_id := prompt_for_choice(matches)

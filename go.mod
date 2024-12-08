@@ -12,6 +12,7 @@ require (
 	github.com/aws/session-manager-plugin v1.2.633
 	github.com/aws/smithy-go v1.22.1
 	github.com/buger/jsonparser v1.1.1
+	github.com/coder/websocket v1.8.12
 	github.com/integrii/flaggy v1.5.2
 	github.com/manifoldco/promptui v0.9.0
 	golang.org/x/mod v0.22.0
@@ -41,4 +42,5 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
-replace github.com/aws/session-manager-plugin => github.com/ruelala/session-manager-plugin v1.6.3
+// replace github.com/aws/session-manager-plugin => github.com/ruelala/session-manager-plugin v1.6.3
+replace github.com/aws/session-manager-plugin => /home/nsilverman/work/session-manager-plugin

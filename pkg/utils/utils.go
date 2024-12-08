@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/aws/session-manager-plugin/pkg/log"
 	"github.com/buger/jsonparser"
 	"github.com/integrii/flaggy"
 	"golang.org/x/mod/semver"
@@ -46,13 +47,13 @@ func IsLatest() {
 		return
 	}
 	if comparison == 1 {
-		fmt.Printf("A new version is available (%s), head to %s to get the latest binary\n", latest, html_url)
+		log.Alwaysf("A new version is available (%s), head to %s to get the latest binary", latest, html_url)
 	}
 }
 
 func Panic(err error) {
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Error(err.Error())
 		os.Exit(1)
 	}
 }

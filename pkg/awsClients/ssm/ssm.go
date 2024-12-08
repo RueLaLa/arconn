@@ -9,11 +9,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
+	"github.com/aws/session-manager-plugin/pkg/log"
 	"github.com/aws/session-manager-plugin/pkg/session"
 	_ "github.com/aws/session-manager-plugin/pkg/session/portsession"
 	_ "github.com/aws/session-manager-plugin/pkg/session/shellsession"
 	"github.com/manifoldco/promptui"
 	"github.com/ruelala/arconn/pkg/awsClients/AwsConfig"
+	"github.com/ruelala/arconn/pkg/smp"
 	"github.com/ruelala/arconn/pkg/utils"
 )
 
@@ -60,10 +62,10 @@ func filter_matches(instances []types.InstanceInformation, target string) string
 	}
 
 	if len(matches) == 0 {
-		fmt.Printf("no matching SSM instances found for %s\n", target)
+		log.Alwaysf("no matching SSM instances found for %s", target)
 		return ""
 	} else if len(matches) == 1 {
-		fmt.Printf("found %s currently running in SSM\n", matches[0].ID)
+		log.Alwaysf("found %s currently running in SSM", matches[0].ID)
 		return matches[0].ID
 	} else {
 		instance_id := prompt_for_choice(matches)
@@ -151,6 +153,7 @@ func Connect(args utils.Args, target utils.Target) {
 		target.SessionInfo = string(session_raw)
 	}
 
+	smp.StartSession(target.SessionInfo, string(target_json))
 	session.ValidateInputAndStartSession(
 		target.SessionInfo,
 		args.Profile,

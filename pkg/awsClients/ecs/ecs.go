@@ -11,20 +11,21 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go-v2/service/ecs"
 	"github.com/aws/aws-sdk-go-v2/service/ecs/types"
+	"github.com/aws/session-manager-plugin/pkg/log"
 	"github.com/manifoldco/promptui"
 	"github.com/ruelala/arconn/pkg/awsClients/AwsConfig"
 	"github.com/ruelala/arconn/pkg/utils"
 )
 
 func Lookup(args utils.Args, target utils.Target) utils.Target {
-	fmt.Println("searching ECS for matching tasks")
+	log.Always("searching ECS for matching tasks")
 	client := ecs.NewFromConfig(AwsConfig.BuildConfig(args))
 	clusters := list_clusters(client)
 	tasks := find_matching_tasks(client, clusters, args, target.Type)
 
 	chosen_task := FTask{}
 	if len(tasks) == 0 {
-		fmt.Println("no tasks matching target running in ECS with execute command capabilities")
+		log.Always("no tasks matching target running in ECS with execute command capabilities")
 		return target
 	} else if len(tasks) == 1 {
 		chosen_task = tasks[0]
